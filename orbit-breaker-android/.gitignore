@@ -1,0 +1,19 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+
+# Android build outputs & IDE caches
+android/.gradle/
+android/build/
+android/app/build/
+android/captures/
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/local.properties
+android/.externalNativeBuild
+android/.cxx
+
+# OS metadata
+.DS_Store
+Thumbs.db

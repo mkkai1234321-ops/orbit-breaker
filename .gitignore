@@ -1,0 +1,23 @@
+# Releases & Promo media
+release/
+promo/
+*.zip
+
+# Node dependencies
+node_modules/
+orbit-breaker-android/node_modules/
+
+# Android build outputs & IDE caches
+android/.gradle/
+android/app/build/
+orbit-breaker-android/android/.gradle/
+orbit-breaker-android/android/build/
+orbit-breaker-android/android/app/build/
+orbit-breaker-android/android/local.properties
+orbit-breaker-android/android/.idea/
+orbit-breaker-android/android/*.iml
+orbit-breaker-android/android/app/*.iml
+
+# OS metadata
+.DS_Store
+Thumbs.db

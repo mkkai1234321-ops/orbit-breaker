@@ -1,0 +1,13 @@
+{
+  "appId": "com.orbitbreaker.game",
+  "appName": "Orbit Breaker",
+  "webDir": "www",
+  "backgroundColor": "#050714",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#050714",
+    "allowMixedContent": true
+  }
+}

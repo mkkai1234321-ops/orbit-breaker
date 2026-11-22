@@ -1,0 +1,26 @@
+{
+  "name": "orbit-breaker",
+  "version": "1.0.0",
+  "description": "Orbit Breaker Android Application",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx cap copy",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android",
+    "generate:assets": "npx @capacitor/assets generate --android"
+  },
+  "keywords": [
+    "game",
+    "orbit-breaker",
+    "capacitor",
+    "android"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  }
+}

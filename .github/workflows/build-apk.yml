@@ -1,0 +1,57 @@
+name: Build Orbit Breaker APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Detect Project Root & Sync Capacitor
+        run: |
+          if [ -d "orbit-breaker-android" ] && [ -f "orbit-breaker-android/package.json" ]; then
+            echo "Building from subfolder: orbit-breaker-android"
+            echo "SUB_DIR=orbit-breaker-android" >> $GITHUB_ENV
+            cd orbit-breaker-android
+          else
+            echo "Building from root directory"
+            echo "SUB_DIR=." >> $GITHUB_ENV
+          fi
+          npm install
+          npx cap sync android
+
+      - name: Make Gradle Wrapper Executable
+        run: |
+          chmod +x $SUB_DIR/android/gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd $SUB_DIR/android
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrbitBreaker-Debug-APK
+          path: ${{ env.SUB_DIR }}/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14
