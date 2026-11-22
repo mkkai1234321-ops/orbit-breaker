@@ -650,9 +650,43 @@
       pointer-events: none;
     }
     #status-banner {
-      max-width: min(520px, calc(100% - 240px));
-      transition: opacity 0.4s ease, transform 0.4s ease;
+      max-width: min(560px, calc(100% - 220px));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: opacity 0.35s ease, transform 0.35s ease;
       pointer-events: auto;
+      position: relative;
+    }
+    #status-banner-text {
+      flex: 1;
+      line-height: 1.4;
+    }
+    .banner-close-btn {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #9cd5ff;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    .banner-close-btn:hover, .banner-close-btn:active {
+      background: rgba(255, 60, 60, 0.45);
+      border-color: #ff5252;
+      color: #ffffff;
+      transform: scale(1.12);
     }
     #status-banner.faded {
       opacity: 0.12 !important;
@@ -661,6 +695,9 @@
     #status-banner.faded:hover, #status-banner.faded:active {
       opacity: 1 !important;
       transform: scale(1);
+    }
+    #status-banner.dismissed {
+      display: none !important;
     }
 
     /* Responsive Desktop Tools vs Mobile Settings Toggle */
@@ -873,7 +910,10 @@
 
       <!-- Bottom Banner -->
       <div id="hud-bottom">
-        <div id="status-banner">Kéo chuột từ tàu (như ná cao su) để chọn hướng & lực phóng vào Cổng Đích!</div>
+        <div id="status-banner">
+          <span id="status-banner-text">Kéo từ tàu (như ná cao su) để chọn hướng & lực phóng vào Cổng Đích!</span>
+          <button id="btn-close-banner" class="banner-close-btn" title="Đóng chỉ dẫn" aria-label="Đóng chỉ dẫn">✕</button>
+        </div>
       </div>
 
       <!-- Level Select Menu Modal -->
@@ -885,7 +925,6 @@
             <span>Tổng Sao Đạt Được:</span>
             <span class="star-hud" id="menu-total-stars">★ 0 / 300</span>
           </div>
-          <button class="glass-btn" id="btn-unlock-all">🔓 Mở Khóa Tất Cả 100 Màn</button>
           <button class="glass-btn" id="btn-reset-save" style="border-color:rgba(255, 60, 90, 0.5); color:#ff8899;">🗑 Đặt Lại Tiến Độ</button>
           <button class="glass-btn" id="btn-close-menu">▶ Tiếp Tục Chơi</button>
         </div>
@@ -1288,7 +1327,7 @@
             "id": 1,
             "sector": 1,
             "name": "Bước Nhảy Đầu Tiên",
-            "tutorial": "HƯỚNG DẪN: Kéo chuột ngược từ tàu (như ná cao su) lên hướng Đông-Bắc để lực hấp dẫn uốn quỹ đạo vào Cổng Đích!",
+            "tutorial": "HƯỚNG DẪN: Kéo ngược từ tàu (như ná cao su) lên hướng Đông-Bắc để lực hấp dẫn uốn quỹ đạo vào Cổng Đích!",
             "w": 1280,
             "h": 720,
             "start": {
@@ -3224,6 +3263,9 @@
       targetY: VIRTUAL_H / 2,
       targetZoom: 1,
       mode: 'OVERVIEW', // 'OVERVIEW' or 'FOLLOW'
+      userZoom: null,
+      userPanX: null,
+      userPanY: null,
       isPanning: false,
       panStartX: 0,
       panStartY: 0,
@@ -3257,15 +3299,25 @@
       } else {
         // FOLLOW MODE
         if (state.mode === 'AIMING') {
-          camera.targetX = state.ship.x;
-          camera.targetY = state.ship.y;
-          camera.targetZoom = 1.0;
+          if (camera.userZoom != null) {
+            camera.targetZoom = camera.userZoom;
+          } else {
+            camera.targetZoom = 1.0;
+          }
+          if (camera.userPanX != null && camera.userPanY != null) {
+            camera.targetX = camera.userPanX;
+            camera.targetY = camera.userPanY;
+          } else {
+            camera.targetX = state.ship.x;
+            camera.targetY = state.ship.y;
+          }
         } else if (state.mode === 'FLYING' || state.mode === 'REPLAYING') {
           // Dynamic lead
           const spd = Math.hypot(state.ship.vx, state.ship.vy);
           camera.targetX = state.ship.x + (state.ship.vx / (spd || 1)) * Math.min(180, spd * 0.45);
           camera.targetY = state.ship.y + (state.ship.vy / (spd || 1)) * Math.min(180, spd * 0.45);
-          camera.targetZoom = Math.max(0.68, 1.0 - (spd / 1200) * 0.32);
+          const baseZoom = camera.userZoom || 1.0;
+          camera.targetZoom = Math.max(0.48, baseZoom - (spd / 1200) * 0.28);
         }
 
         // Clamp camera targets so viewport stays within map boundaries
@@ -3617,6 +3669,9 @@
 
       state.collectedCrystals = new Set();
       state.deactivatedGates = new Set();
+      camera.userZoom = null;
+      camera.userPanX = null;
+      camera.userPanY = null;
 
       syncDynamicBodies(lv, state.levelTime);
       resetShipToStart(false);
@@ -3812,7 +3867,10 @@
       triggerHaptic('crash'); sfx.playExplosion();
       spawnShockwave(crashX, crashY, isViolent ? 110 : 85, isViolent ? '#ff7b00' : '#ff2a85', 4.5, 0.55);
       spawnBurst(crashX, crashY, isViolent ? 55 : 45, 50, 290, ['#ff3b5c', '#ff7b00', '#ffd740', '#ffffff'], 5, 0.85);
-      setBanner(`💥 ${reasonText} — Nhấn chuột hoặc bấm [R] để thử lại!`);
+      const retryPrompt = isTouchDevice
+        ? (currentLang === 'en' ? 'Tap screen to retry!' : 'Chạm vào màn hình để thử lại!')
+        : (currentLang === 'en' ? 'Click or press [R] to retry!' : 'Nhấn chuột hoặc bấm [R] để thử lại!');
+      setBanner(`💥 ${reasonText} — ${retryPrompt}`, true);
     }
 
     function triggerGoalEntry() {
@@ -5356,15 +5414,60 @@
     // 11. UI, HUD, SECTOR TABS, MENU & VICTORY
     // ============================================================================
     let bannerFadeTimer = null;
-    function setBanner(msg) {
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+    function formatDeviceText(str) {
+      if (!str) return '';
+      if (!isTouchDevice) return str;
+
+      let res = str;
+      res = res.replace(/Nhấn chuột hoặc bấm \[R\] để thử lại!/gi, 'Chạm vào màn hình để thử lại!');
+      res = res.replace(/Nhấp chuột hoặc bấm \[?R\]? để thử lại!?/gi, 'Chạm vào màn hình để thử lại!');
+      res = res.replace(/Click or press \[R\] to retry!/gi, 'Tap screen to retry!');
+      res = res.replace(/Kéo chuột ngược từ tàu/gi, 'Kéo ngón tay ngược từ tàu');
+      res = res.replace(/Kéo chuột từ tàu/gi, 'Kéo từ tàu');
+      res = res.replace(/Kéo chuột/gi, 'Kéo ngón tay');
+      res = res.replace(/Drag mouse/gi, 'Drag finger');
+      res = res.replace(/bấm \[Space\] để đốt nhiên liệu/gi, 'chạm nút [ĐẨY TÀU] để tăng tốc');
+      res = res.replace(/press \[Space\] to boost/gi, 'tap [BOOST] button to speed up');
+      res = res.replace(/Bấm \[Z\] để xem toàn cảnh hoặc theo dõi tàu/gi, 'Thu phóng 2 ngón tay hoặc chạm Camera');
+      res = res.replace(/Press \[Z\] to toggle camera/gi, 'Pinch 2 fingers to zoom or tap Camera');
+      return res;
+    }
+
+    let bannerDismissed = false;
+
+    function setBanner(msg, forceShow = false) {
       if (bannerFadeTimer) {
         clearTimeout(bannerFadeTimer);
         bannerFadeTimer = null;
       }
       const statusEl = document.getElementById('status-banner');
-      if (statusEl) {
-        statusEl.classList.remove('faded');
-        statusEl.textContent = msg;
+      const textEl = document.getElementById('status-banner-text');
+      if (!statusEl) return;
+
+      if (!msg) {
+        statusEl.classList.add('dismissed');
+        return;
+      }
+
+      if (forceShow) {
+        bannerDismissed = false;
+        statusEl.classList.remove('dismissed');
+      }
+
+      if (bannerDismissed) {
+        statusEl.classList.add('dismissed');
+        return;
+      }
+
+      statusEl.classList.remove('dismissed');
+      statusEl.classList.remove('faded');
+      const formatted = formatDeviceText(msg);
+      if (textEl) {
+        textEl.textContent = formatted;
+      } else {
+        statusEl.textContent = formatted;
       }
     }
 
@@ -5571,25 +5674,109 @@
       };
     }
 
-    // Multi-touch & Gesture Pointer Tracking
+    // Multi-touch & Gesture Pointer Tracking (Pinch to Zoom & Pan)
     const activePointers = new Map();
     let pinchStartDist = 0;
     let pinchStartZoom = 1.0;
     let pinchCenterStart = { x: 0, y: 0 };
     let pinchCamOrigin = { x: 0, y: 0 };
+    let touchPinchActive = false;
+    let touchPinchDist = 0;
+    let touchPinchStartZoom = 1.0;
+    let touchPinchCenter = { x: 0, y: 0 };
+    let touchPinchCamOrigin = { x: 0, y: 0 };
     let maxPullHapticFired = false;
+
+    // Close Banner Button Listener
+    const btnCloseBanner = document.getElementById('btn-close-banner');
+    if (btnCloseBanner) {
+      const dismissBannerAction = (e) => {
+        e.stopPropagation();
+        bannerDismissed = true;
+        const statusEl = document.getElementById('status-banner');
+        if (statusEl) statusEl.classList.add('dismissed');
+      };
+      btnCloseBanner.addEventListener('click', dismissBannerAction);
+      btnCloseBanner.addEventListener('pointerdown', (e) => e.stopPropagation());
+      btnCloseBanner.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+    }
+
+    // Dedicated Native 2-Finger Touch Pinch-to-Zoom & Pan for Mobile
+    canvas.addEventListener('touchstart', (e) => {
+      sfx.init();
+      if (e.touches.length === 2) {
+        touchPinchActive = true;
+        state.isDragging = false;
+        camera.isPanning = false;
+
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        touchPinchDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+        touchPinchStartZoom = camera.userZoom || camera.zoom;
+        touchPinchCenter = {
+          x: (t0.clientX + t1.clientX) * 0.5,
+          y: (t0.clientY + t1.clientY) * 0.5
+        };
+        touchPinchCamOrigin = { x: camera.x, y: camera.y };
+        camera.mode = 'FOLLOW';
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && touchPinchActive && touchPinchDist > 5) {
+        e.preventDefault();
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        const currentDist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+        const scaleFactor = currentDist / touchPinchDist;
+        const newZoom = Math.max(0.35, Math.min(2.5, touchPinchStartZoom * scaleFactor));
+
+        camera.mode = 'FOLLOW';
+        camera.userZoom = newZoom;
+        camera.targetZoom = newZoom;
+        camera.zoom = newZoom;
+
+        // Two-finger pan while pinching
+        const currentCenter = {
+          x: (t0.clientX + t1.clientX) * 0.5,
+          y: (t0.clientY + t1.clientY) * 0.5
+        };
+        const dx = (currentCenter.x - touchPinchCenter.x) / (viewScale * camera.zoom);
+        const dy = (currentCenter.y - touchPinchCenter.y) / (viewScale * camera.zoom);
+        camera.userPanX = touchPinchCamOrigin.x - dx;
+        camera.userPanY = touchPinchCamOrigin.y - dy;
+        camera.targetX = camera.userPanX;
+        camera.targetY = camera.userPanY;
+        camera.x = camera.targetX;
+        camera.y = camera.targetY;
+      }
+    }, { passive: false });
+
+    const handleTouchPinchEnd = (e) => {
+      if (e.touches.length < 2) {
+        touchPinchActive = false;
+        touchPinchDist = 0;
+      }
+    };
+    canvas.addEventListener('touchend', handleTouchPinchEnd, { passive: true });
+    canvas.addEventListener('touchcancel', handleTouchPinchEnd, { passive: true });
 
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const factor = e.deltaY < 0 ? 1.12 : 0.89;
       camera.mode = 'FOLLOW';
-      camera.targetZoom = Math.max(0.35, Math.min(2.5, camera.zoom * factor));
+      camera.userZoom = Math.max(0.35, Math.min(2.5, (camera.userZoom || camera.zoom) * factor));
+      camera.targetZoom = camera.userZoom;
     }, { passive: false });
 
     canvas.addEventListener('pointerdown', (e) => {
       sfx.init();
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      canvas.setPointerCapture(e.pointerId);
+
+      if (e.pointerType === 'mouse') {
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      }
 
       if (state.mode === 'LOST') {
         resetShipToStart(false);
@@ -5604,26 +5791,28 @@
         const lv = getCurrentLevel();
         const mapW = lv.w || VIRTUAL_W, mapH = lv.h || VIRTUAL_H;
         camera.mode = 'FOLLOW';
-        camera.targetX = ((screenPt.x - (rx + 8)) / (rw - 16)) * mapW;
-        camera.targetY = ((screenPt.y - (ry + 20)) / (rh - 26)) * mapH;
+        camera.userPanX = ((screenPt.x - (rx + 8)) / (rw - 16)) * mapW;
+        camera.userPanY = ((screenPt.y - (ry + 20)) / (rh - 26)) * mapH;
+        camera.targetX = camera.userPanX;
+        camera.targetY = camera.userPanY;
         camera.targetZoom = 1.0;
         return;
       }
 
-      // Handle multi-touch gesture initiation (Pinch-to-zoom & two-finger pan)
-      if (activePointers.size === 2) {
-        // Cancel single-finger slingshot drag if pinch gesture starts
+      // Multi-touch cancellation for slingshot
+      if (activePointers.size >= 2 || touchPinchActive) {
         state.isDragging = false;
         camera.isPanning = false;
 
         const pts = Array.from(activePointers.values());
         pinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
-        pinchStartZoom = camera.zoom;
+        pinchStartZoom = camera.userZoom || camera.zoom;
         pinchCenterStart = {
           x: (pts[0].x + pts[1].x) / 2,
           y: (pts[0].y + pts[1].y) / 2
         };
         pinchCamOrigin = { x: camera.x, y: camera.y };
+        camera.mode = 'FOLLOW';
         return;
       }
 
@@ -5638,6 +5827,7 @@
         maxPullHapticFired = false;
         state.dragStart = { x: worldPt.x, y: worldPt.y };
         state.dragCurrent = { x: worldPt.x, y: worldPt.y };
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
       } else {
         camera.isPanning = true;
         camera.panStartX = screenPt.x;
@@ -5658,8 +5848,11 @@
         const currentDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
         if (pinchStartDist > 5) {
           const ratio = currentDist / pinchStartDist;
+          const newZoom = Math.max(0.35, Math.min(2.5, pinchStartZoom * ratio));
           camera.mode = 'FOLLOW';
-          camera.targetZoom = Math.max(0.35, Math.min(2.5, pinchStartZoom * ratio));
+          camera.userZoom = newZoom;
+          camera.targetZoom = newZoom;
+          camera.zoom = newZoom;
         }
 
         const currentCenter = {
@@ -5669,8 +5862,12 @@
         const dx = (currentCenter.x - pinchCenterStart.x) / (viewScale * camera.zoom);
         const dy = (currentCenter.y - pinchCenterStart.y) / (viewScale * camera.zoom);
         camera.mode = 'FOLLOW';
-        camera.targetX = pinchCamOrigin.x - dx;
-        camera.targetY = pinchCamOrigin.y - dy;
+        camera.userPanX = pinchCamOrigin.x - dx;
+        camera.userPanY = pinchCamOrigin.y - dy;
+        camera.targetX = camera.userPanX;
+        camera.targetY = camera.userPanY;
+        camera.x = camera.targetX;
+        camera.y = camera.targetY;
         return;
       }
 
@@ -5680,8 +5877,10 @@
         const dx = (screenPt.x - camera.panStartX) / camera.zoom;
         const dy = (screenPt.y - camera.panStartY) / camera.zoom;
         camera.mode = 'FOLLOW';
-        camera.targetX = camera.camOriginX - dx;
-        camera.targetY = camera.camOriginY - dy;
+        camera.userPanX = camera.camOriginX - dx;
+        camera.userPanY = camera.camOriginY - dy;
+        camera.targetX = camera.userPanX;
+        camera.targetY = camera.userPanY;
         return;
       }
 
@@ -5769,17 +5968,20 @@
       hideModal('menu-modal');
     });
 
-    document.getElementById('btn-unlock-all').addEventListener('click', () => {
-      const msg = currentLang === 'en'
-        ? 'Unlock all 100 levels? This will reveal all galaxy sectors.'
-        : 'Mở khóa toàn bộ 100 màn chơi? Điều này sẽ mở tất cả các thiên hà.';
-      if (window.confirm(msg)) {
-        sfx.playClick();
-        saveData.unlockedLevel = LEVELS.length;
-        saveProgress();
-        buildLevelSelectGrid();
-      }
-    });
+    const btnUnlockAllEl = document.getElementById('btn-unlock-all');
+    if (btnUnlockAllEl) {
+      btnUnlockAllEl.addEventListener('click', () => {
+        const msg = currentLang === 'en'
+          ? 'Unlock all 100 levels? This will reveal all galaxy sectors.'
+          : 'Mở khóa toàn bộ 100 màn chơi? Điều này sẽ mở tất cả các thiên hà.';
+        if (window.confirm(msg)) {
+          sfx.playClick();
+          saveData.unlockedLevel = LEVELS.length;
+          saveProgress();
+          buildLevelSelectGrid();
+        }
+      });
+    }
 
     document.getElementById('btn-boost').addEventListener('click', () => triggerBoost(false));
 
@@ -6013,6 +6215,9 @@
 
     document.getElementById('btn-camera').addEventListener('click', () => {
       sfx.playClick();
+      camera.userZoom = null;
+      camera.userPanX = null;
+      camera.userPanY = null;
       camera.mode = camera.mode === 'OVERVIEW' ? 'FOLLOW' : 'OVERVIEW';
       const camLbl = document.getElementById('lbl-camera-btn');
       if (camLbl) camLbl.textContent = camera.mode === 'OVERVIEW' ? I18N[currentLang].camOverview : I18N[currentLang].camFollow;
