@@ -2741,24 +2741,31 @@
       }
 ];
 
-    function createProceduralLevel(id) {
+function createProceduralLevel(id) {
       const sector = Math.min(10, Math.floor((id - 1) / 10) + 1);
-      const name = LEVEL_NAMES[id - 1];
+      const sub = ((id - 1) % 10) + 1;
+      const name = LEVEL_NAMES[id - 1] || `Màn ${id}`;
 
-      // Map dimensions scale up smoothly
+      // Progressive map sizing
       let w = 1280, h = 720;
-      if (sector === 2) { w = 1400; h = 800; }
-      else if (sector === 3) { w = 1550; h = 880; }
-      else if (sector === 4) { w = 1700; h = 950; }
-      else if (sector === 5) { w = 1900; h = 1050; }
-      else if (sector === 6) { w = 2150; h = 1200; }
-      else if (sector === 7) { w = 2400; h = 1350; }
-      else if (sector === 8) { w = 2650; h = 1480; }
-      else if (sector === 9) { w = 2900; h = 1620; }
-      else if (sector === 10) { w = id === 100 ? 3200 : 3050; h = id === 100 ? 1800 : 1700; }
+      if (sector === 2) { w = 1400; h = 780; }
+      else if (sector === 3) { w = 1550; h = 850; }
+      else if (sector === 4) { w = 1700; h = 920; }
+      else if (sector === 5) { w = 1900; h = 1000; }
+      else if (sector === 6) { w = 2150; h = 1120; }
+      else if (sector === 7) { w = 2400; h = 1250; }
+      else if (sector === 8) { w = 2650; h = 1380; }
+      else if (sector === 9) { w = 2900; h = 1500; }
+      else if (sector === 10) { w = id === 100 ? 3200 : 3050; h = id === 100 ? 1800 : 1600; }
 
-      const startY = Math.round(h * (0.34 + 0.32 * Math.sin(id * 1.57)));
-      const goalY = Math.round(h * (0.34 + 0.32 * Math.cos(id * 1.43)));
+      // Safe, bounded start and goal coordinates (guaranteed >= 200px from top and bottom)
+      const startX = Math.round(Math.max(160, Math.min(w * 0.16, 280)));
+      const rawStartY = Math.round(h * 0.5 + Math.sin(id * 1.37 + sub * 0.45) * (h * 0.23));
+      const safeStartY = Math.max(200, Math.min(h - 200, rawStartY));
+
+      const goalX = Math.round(w - Math.max(160, Math.min(w * 0.16, 280)));
+      const rawGoalY = Math.round(h * 0.5 - Math.sin(id * 1.71 + sub * 0.52) * (h * 0.23));
+      const safeGoalY = Math.max(200, Math.min(h - 200, rawGoalY));
 
       const lv = {
         id,
@@ -2766,9 +2773,9 @@
         name,
         tutorial: `MÀN ${id} [${SECTORS[sector - 1].name.toUpperCase()}]: ${name}. Vượt qua chướng ngại và đưa tàu vào Cổng Đích!`,
         w, h,
-        start: { x: Math.round(w * 0.1), y: startY },
-        goal: { x: Math.round(w * 0.9), y: goalY, r: id >= 80 ? 46 : 42 },
-        maxFuel: Math.min(5, 2 + Math.floor(sector / 3) + (id === 100 ? 1 : 0)),
+        start: { x: startX, y: safeStartY },
+        goal: { x: goalX, y: safeGoalY, r: id >= 80 ? 46 : 40 },
+        maxFuel: Math.min(5, 2 + Math.floor(sector / 3) + (sub >= 7 ? 1 : 0)),
         parFuel: Math.min(3, 1 + Math.floor(sector / 4)),
         planets: [],
         blackHoles: [],
@@ -2784,75 +2791,13 @@
         laserGates: []
       };
 
-      // ---------------- LEVEL 100: THE OMNIVERSAL SINGULARITY (THE ULTIMATE IMPOSSIBLE BOSS) ----------------
-      if (id === 100) {
-        lv.tutorial = "THỬ THÁCH TỐI THƯỢNG: CỰC HẠN VÔ CỰC (THE OMNIVERSAL SINGULARITY)! Bản đồ 3200x1800. Hội tụ 3 Hố Đen siêu khối lượng, 2 Mặt Trời rực lửa, 2 Sao Pulsar quét đối lập, 2 Hành tinh đảo cực, 4 Tấm khiên phản xạ, 4 Vòng gia tốc, 4 Pha lê khóa và 3 Cổng Laser bảo vệ Cổng Đích! Gần như bất khả thi!";
-        lv.start = { x: 260, y: 900 };
-        lv.goal = { x: 2950, y: 900, r: 52 };
-        lv.maxFuel = 5;
-        lv.parFuel = 2;
+      const cx = Math.round(w * 0.5), cy = Math.round(h * 0.5);
 
-        lv.blackHoles = [
-          { x: 1600, y: 900, r: 52, mass: 3600 },
-          { x: 1050, y: 480, r: 42, mass: 2400 },
-          { x: 2150, y: 1320, r: 42, mass: 2400 }
-        ];
-
-        lv.planets = [
-          { x: 1050, y: 1320, r: 68, mass: 2200, type: 'sun', color: '#ff3d00', atmo: '#ff9100', seed: 1001 },
-          { x: 2150, y: 480, r: 68, mass: 2200, type: 'sun', color: '#ff6d00', atmo: '#ffab00', seed: 1002 },
-          { x: 620, y: 900, r: 58, mass: 1800, type: 'gas', color: '#ff0055', atmo: '#ff3388', seed: 1003, isPolarity: true, polarityPeriod: 3.5, polarityOffset: 0 },
-          { x: 2580, y: 900, r: 58, mass: 1800, type: 'gas', color: '#ff0055', atmo: '#ff3388', seed: 1004, isPolarity: true, polarityPeriod: 3.5, polarityOffset: 1.7 }
-        ];
-
-        lv.pulsars = [
-          { x: 1600, y: 380, r: 30, mass: 1800, rotSpeed: 0.75, beamAngle: 0.4, beamWidth: 0.18, range: 620 },
-          { x: 1600, y: 1420, r: 30, mass: 1800, rotSpeed: -0.75, beamAngle: 1.8, beamWidth: 0.18, range: 620 }
-        ];
-
-        lv.mirrors = [
-          { x1: 1250, y1: 180, x2: 1950, y2: 180, r: 18 },
-          { x1: 1250, y1: 1620, x2: 1950, y2: 1620, r: 18 },
-          { x1: 750, y1: 520, x2: 750, y2: 1280, r: 18 },
-          { x1: 2450, y1: 520, x2: 2450, y2: 1280, r: 18 }
-        ];
-
-        lv.wormholes = [
-          { x1: 480, y1: 350, x2: 1350, y2: 880, r: 38, color1: '#00e5ff', color2: '#e040fb' },
-          { x1: 1850, y1: 920, x2: 2720, y2: 1450, r: 38, color1: '#e040fb', color2: '#00ffaa' }
-        ];
-
-        lv.accelRings = [
-          { x: 900, y: 720, angle: -0.4, r: 40, boost: 240 },
-          { x: 1400, y: 1250, angle: 0.3, r: 40, boost: 240 },
-          { x: 1800, y: 550, angle: -0.3, r: 40, boost: 240 },
-          { x: 2300, y: 1080, angle: 0.4, r: 40, boost: 240 }
-        ];
-
-        lv.crystals = [
-          { id: 'c1', x: 1050, y: 220, r: 36 },
-          { id: 'c2', x: 1050, y: 1580, r: 36 },
-          { id: 'c3', x: 2150, y: 220, r: 36 },
-          { id: 'c4', x: 2150, y: 1580, r: 36 }
-        ];
-
-        lv.switches = [
-          { id: 'sw1', gateId: 'g1', x: 620, y: 350, r: 30 },
-          { id: 'sw2', gateId: 'g2', x: 1600, y: 680, r: 30 },
-          { id: 'sw3', gateId: 'g3', x: 2580, y: 1450, r: 30 }
-        ];
-
-        lv.laserGates = [
-          { id: 'g1', x1: 2780, y1: 550, x2: 2780, y2: 1250 },
-          { id: 'g2', x1: 2850, y1: 650, x2: 3050, y2: 650 },
-          { id: 'g3', x1: 2850, y1: 1150, x2: 3050, y2: 1150 }
-        ];
-
-        return lv;
-      }
-
-      // Safety Anti-Overlap Clearance Helper
+      // Safe clearance helper inside createProceduralLevel
       function ensureSafeClearance(item, minR = 30) {
+        item.x = Math.max(140, Math.min(lv.w - 140, item.x));
+        item.y = Math.max(190, Math.min(lv.h - 190, item.y));
+
         const hazards = [
           ...lv.planets.map(p => ({ x: p.x, y: p.y, r: p.r || 50 })),
           ...lv.blackHoles.map(b => ({ x: b.x, y: b.y, r: b.r || 45 })),
@@ -2861,75 +2806,579 @@
         ];
         for (const h of hazards) {
           const d = Math.hypot(item.x - h.x, item.y - h.y);
-          const safeDist = minR + h.r + 35;
+          const safeDist = minR + h.r + 42;
           if (d < safeDist) {
             const angle = Math.atan2(item.y - h.y, item.x - h.x) || (item.x < lv.w / 2 ? -0.8 : 0.8);
-            item.x = Math.max(80, Math.min(lv.w - 80, Math.round(h.x + Math.cos(angle) * safeDist)));
-            item.y = Math.max(80, Math.min(lv.h - 80, Math.round(h.y + Math.sin(angle) * safeDist)));
+            item.x = Math.max(140, Math.min(lv.w - 140, Math.round(h.x + Math.cos(angle) * safeDist)));
+            item.y = Math.max(190, Math.min(lv.h - 190, Math.round(h.y + Math.sin(angle) * safeDist)));
           }
         }
       }
 
-      // ---------------- SECTORS PROCEDURAL ARCHETYPES ----------------
-      const cx = w * 0.5, cy = h * 0.5;
+      // ---------------- LEVEL 100: THE OMNIVERSAL SINGULARITY ----------------
+      if (id === 100) {
+        lv.tutorial = "THỬ THÁCH TỐI THƯỢNG: CỰC HẠN VÔ CỰC (THE OMNIVERSAL SINGULARITY)! Bản đồ 3200x1800. Hội tụ 3 Hố Đen siêu khối lượng, 2 Mặt Trời rực lửa, 2 Sao Pulsar quét đối lập, 2 Hành tinh đảo cực, 4 Tấm khiên phản xạ, 4 Vòng gia tốc, 4 Pha lê khóa và 3 Cổng Laser bảo vệ Cổng Đích! Gần như bất khả thi!";
+        lv.start = { x: 260, y: 900 };
+        lv.goal = { x: 2950, y: 900, r: 52 };
+        lv.maxFuel = 5; lv.parFuel = 2;
 
-      if (sector === 1) {
-        lv.planets.push({ x: cx, y: cy, r: 58 + (id % 4) * 6, mass: 1200 + id * 80, type: id % 2 === 0 ? 'rocky' : 'gas', color: '#2b82ff', atmo: '#00f2fe', seed: id });
-        if (id >= 5) {
-          lv.planets.push({ x: cx + Math.sin(id) * 220, y: cy + Math.cos(id) * 160, r: 44, mass: 800, type: 'rocky', color: '#00b4db', atmo: '#00f2fe', seed: id * 2 });
-        }
-      } else if (sector === 2) {
-        lv.planets.push({ x: cx, y: cy, r: 62, mass: 1400 + id * 60, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id });
-        lv.wormholes.push({ x1: cx - 280, y1: cy - 140, x2: cx + 280, y2: cy + 140, r: 34, color1: '#ff2a85', color2: '#00f2fe' });
-        if (id >= 16) {
-          lv.blackHoles.push({ x: cx, y: cy - 200, r: 32, mass: 1800 });
-        }
-      } else if (sector === 3) {
-        lv.planets.push({ x: cx, y: cy, r: 65, mass: 1600 + id * 50, type: 'sun', color: '#ff7b00', atmo: '#ffcc00', seed: id });
-        lv.asteroids.push({ x: cx - 180, y: cy - 180, r: 24, seed: id * 3 });
-        lv.asteroids.push({ x: cx + 180, y: cy + 180, r: 24, seed: id * 4 });
-      } else if (sector === 4) {
-        lv.planets.push({ x: cx, y: cy + 80, r: 60, mass: 1200, type: 'gas', color: '#00e5a3', atmo: '#00ffaa', seed: id });
-        lv.crystals.push({ id: 'c1', x: cx, y: cy - 180, r: 32 });
-        lv.mirrors.push({ x1: cx - 160, y1: h - 120, x2: cx + 160, y2: h - 120, r: 16 });
-      } else if (sector === 5) {
-        lv.pulsars.push({ x: cx, y: cy, r: 28, mass: 1500, rotSpeed: 0.5 + (id % 3) * 0.2, beamAngle: (id * 0.7) % 3.14, beamWidth: 0.2, range: 450 });
-        lv.accelRings.push({ x: cx - 300, y: cy - 120, angle: -0.4, r: 36, boost: 220 });
-        lv.dragZones.push({ x: cx + 260, y: cy + 120, r: 150, drag: 0.985 });
-      } else if (sector === 6) {
-        lv.planets.push({ x: cx, y: cy, r: 64, mass: 1800, type: 'gas', color: '#ff0055', atmo: '#ff3388', seed: id, isPolarity: true, polarityPeriod: 4.2 });
-        lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 220, y: h - 160, r: 26 });
-        lv.laserGates.push({ id: 'g1', x1: cx + 320, y1: cy - 250, x2: cx + 320, y2: cy + 250 });
-      } else if (sector === 7) {
-        lv.wormholes.push({ x1: cx - 350, y1: cy + 180, x2: cx, y2: cy - 180, r: 36, color1: '#00e5ff', color2: '#2979ff' });
-        lv.mirrors.push({ x1: cx + 200, y1: cy + 250, x2: cx + 380, y2: cy + 250, r: 16 });
-        lv.accelRings.push({ x: cx + 450, y: cy, angle: 0, r: 38, boost: 220 });
-        lv.crystals.push({ id: 'c1', x: cx, y: cy + 100, r: 32 });
-        lv.planets.push({ x: cx - 150, y: cy, r: 58, mass: 1400, type: 'gas', color: '#00e5ff', atmo: '#40c4ff', seed: id });
-      } else if (sector === 8) {
-        lv.blackHoles.push({ x: cx - 240, y: cy, r: 38, mass: 2500 });
-        lv.blackHoles.push({ x: cx + 240, y: cy, r: 38, mass: 2500 });
-        lv.crystals.push({ id: 'c1', x: cx, y: cy - 220, r: 34 });
-        lv.mirrors.push({ x1: cx - 180, y1: h - 140, x2: cx + 180, y2: h - 140, r: 18 });
-      } else if (sector === 9) {
-        lv.pulsars.push({ x: cx - 280, y: cy, r: 26, mass: 1500, rotSpeed: 0.65, beamAngle: 0.3, beamWidth: 0.18, range: 480 });
-        lv.pulsars.push({ x: cx + 280, y: cy, r: 26, mass: 1500, rotSpeed: -0.65, beamAngle: 1.6, beamWidth: 0.18, range: 480 });
-        lv.laserGates.push({ id: 'g1', x1: cx + 450, y1: cy - 300, x2: cx + 450, y2: cy + 300 });
-        lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy - 250, r: 28 });
-        lv.crystals.push({ id: 'c1', x: cx, y: cy + 250, r: 34 });
-      } else if (sector === 10) {
-        lv.blackHoles.push({ x: cx, y: cy, r: 44, mass: 2800 });
-        lv.pulsars.push({ x: cx, y: cy - 320, r: 28, mass: 1600, rotSpeed: 0.7, beamAngle: 0.5, beamWidth: 0.18, range: 500 });
-        lv.planets.push({ x: cx - 350, y: cy, r: 60, mass: 1800, type: 'sun', color: '#ff3d00', atmo: '#ff9100', seed: id });
-        lv.planets.push({ x: cx + 350, y: cy, r: 60, mass: 1800, type: 'gas', color: '#e040fb', atmo: '#ea80fc', seed: id, isPolarity: true, polarityPeriod: 3.8 });
-        lv.mirrors.push({ x1: cx - 220, y1: h - 160, x2: cx + 220, y2: h - 160, r: 18 });
-        lv.crystals.push({ id: 'c1', x: cx - 250, y: cy - 200, r: 34 });
-        lv.crystals.push({ id: 'c2', x: cx + 250, y: cy + 200, r: 34 });
+        lv.blackHoles.push({ x: cx, y: cy, r: 64, mass: 3200, pullRadius: 620 });
+        lv.blackHoles.push({ x: cx - 580, y: cy - 350, r: 48, mass: 2200, pullRadius: 460 });
+        lv.blackHoles.push({ x: cx + 580, y: cy + 350, r: 48, mass: 2200, pullRadius: 460 });
+
+        lv.planets.push({ x: cx - 420, y: cy + 420, r: 68, mass: 1900, type: 'sun', color: '#ff5722', atmo: '#ffeb3b', seed: 1001 });
+        lv.planets.push({ x: cx + 420, y: cy - 420, r: 68, mass: 1900, type: 'sun', color: '#ff3d00', atmo: '#ff9800', seed: 1002 });
+        lv.planets.push({ x: cx - 850, y: cy + 120, r: 56, mass: 1400, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 4.0, polarityOffset: 0, seed: 1003 });
+        lv.planets.push({ x: cx + 850, y: cy - 120, r: 56, mass: 1400, type: 'polarity', color: '#ff0055', atmo: '#00e5ff', polarityPeriod: 4.0, polarityOffset: Math.PI, seed: 1004 });
+
+        lv.pulsars.push({ x: cx - 180, y: cy - 500, r: 36, mass: 1600, pulsePeriod: 3.2, pulseForce: 280, phase: 0 });
+        lv.pulsars.push({ x: cx + 180, y: cy + 500, r: 36, mass: 1600, pulsePeriod: 3.2, pulseForce: 280, phase: Math.PI });
+
+        lv.mirrors.push({ x1: cx - 700, y1: cy - 250, x2: cx - 550, y2: cy - 400 });
+        lv.mirrors.push({ x1: cx + 550, y1: cy + 400, x2: cx + 700, y2: cy + 250 });
+        lv.mirrors.push({ x1: cx - 120, y1: cy + 260, x2: cx + 120, y2: cy + 260 });
+        lv.mirrors.push({ x1: cx - 120, y1: cy - 260, x2: cx + 120, y2: cy - 260 });
+
+        lv.accelRings.push({ x: cx - 1050, y: cy - 180, angle: 0.35, r: 46, boost: 320 });
+        lv.accelRings.push({ x: cx - 320, y: cy + 280, angle: -0.4, r: 46, boost: 320 });
+        lv.accelRings.push({ x: cx + 320, y: cy - 280, angle: 0.4, r: 46, boost: 320 });
+        lv.accelRings.push({ x: cx + 1050, y: cy + 180, angle: -0.35, r: 46, boost: 320 });
+
+        lv.laserGates.push({ id: 'g1', x1: cx + 900, y1: cy - 280, x2: cx + 900, y2: cy + 280 });
+        lv.laserGates.push({ id: 'g2', x1: cx + 1150, y1: cy - 220, x2: cx + 1150, y2: cy + 220 });
+        lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 850, y: cy - 350, r: 32 });
+        lv.switches.push({ id: 'sw2', gateId: 'g2', x: cx + 450, y: cy + 520, r: 32 });
+
+        lv.crystals.push({ id: 'c1', x: cx - 400, y: cy - 180, r: 36 });
+        lv.crystals.push({ id: 'c2', x: cx + 400, y: cy + 180, r: 36 });
+        lv.crystals.push({ id: 'c3', x: cx, y: cy + 480, r: 36 });
+        lv.crystals.push({ id: 'c4', x: cx, y: cy - 480, r: 36 });
+
+        lv.wormholes.push({ x1: cx - 1100, y1: cy + 450, x2: cx + 600, y2: cy - 450, r: 44, color1: '#00f2fe', color2: '#ff2a85' });
+        lv.wormholes.push({ x1: cx - 600, y1: cy - 450, x2: cx + 1100, y2: cy + 450, r: 44, color1: '#ff007f', color2: '#7928ca' });
+
+        ensureSafeClearance(lv.start, 26);
+        ensureSafeClearance(lv.goal, lv.goal.r || 40);
+        for (const c of lv.crystals) ensureSafeClearance(c, c.r || 30);
+        for (const sw of lv.switches) ensureSafeClearance(sw, sw.r || 30);
+        return lv;
       }
 
-      // Enforce safe clearance for interactive elements away from celestial hazards
-      ensureSafeClearance(lv.start, 24);
-      ensureSafeClearance(lv.goal, lv.goal.r || 42);
+      // ---------------- SECTOR 1: TINH VÂN LAM NGỌC (Orbital Foundations) ----------------
+      if (sector === 1) {
+        const offset = (sub - 5) * 28;
+        if (sub === 1) {
+          lv.planets.push({ x: cx, y: cy, r: 58, mass: 1250, type: 'rocky', color: '#2b82ff', atmo: '#00f2fe', seed: id });
+        } else if (sub === 2) {
+          lv.planets.push({ x: cx - 60, y: cy - 40, r: 56, mass: 1300, type: 'rocky', color: '#2b82ff', atmo: '#00f2fe', seed: id });
+          lv.planets.push({ x: cx + 180, y: cy + 120, r: 38, mass: 650, type: 'rocky', color: '#00b4db', atmo: '#00f2fe', seed: id + 10 });
+        } else if (sub === 3) {
+          lv.planets.push({ x: cx - 120, y: cy + 90, r: 52, mass: 1100, type: 'gas', color: '#1cb5e0', atmo: '#000046', seed: id });
+          lv.planets.push({ x: cx + 130, y: cy - 90, r: 52, mass: 1100, type: 'rocky', color: '#2b82ff', atmo: '#00f2fe', seed: id + 5 });
+        } else if (sub === 4) {
+          lv.planets.push({ x: cx, y: cy - 50, r: 60, mass: 1400, type: 'rocky', color: '#2b82ff', atmo: '#00f2fe', seed: id });
+          lv.asteroids.push({ x: cx - 160, y: cy + 120, r: 24 });
+          lv.asteroids.push({ x: cx + 160, y: cy + 120, r: 24 });
+        } else if (sub === 5) {
+          lv.planets.push({ x: cx, y: cy, r: 64, mass: 1500, type: 'gas', color: '#00c6ff', atmo: '#0072ff', seed: id });
+          lv.crystals.push({ id: 'c1', x: cx + 140, y: cy - 140, r: 30 });
+        } else if (sub === 6) {
+          lv.planets.push({ x: cx - 140, y: cy - 80, r: 54, mass: 1200, type: 'rocky', color: '#2b82ff', atmo: '#00f2fe', seed: id });
+          lv.planets.push({ x: cx + 150, y: cy + 80, r: 50, mass: 1050, type: 'rocky', color: '#00b4db', atmo: '#00f2fe', seed: id + 2 });
+          lv.asteroids.push({ x: cx, y: cy, r: 25 });
+        } else if (sub === 7) {
+          lv.planets.push({ x: cx + 80, y: cy + 60, r: 66, mass: 1650, type: 'gas', color: '#2193b0', atmo: '#6dd5ed', seed: id });
+          lv.asteroids.push({ x: cx - 180, y: cy - 120, r: 26 });
+          lv.asteroids.push({ x: cx - 70, y: cy - 150, r: 22 });
+        } else if (sub === 8) {
+          lv.planets.push({ x: cx - 180, y: cy - 100, r: 46, mass: 950, type: 'rocky', color: '#2b82ff', atmo: '#00f2fe', seed: id });
+          lv.planets.push({ x: cx, y: cy + 70, r: 50, mass: 1100, type: 'gas', color: '#00c6ff', atmo: '#0072ff', seed: id + 1 });
+          lv.planets.push({ x: cx + 180, y: cy - 90, r: 44, mass: 900, type: 'rocky', color: '#00b4db', atmo: '#00f2fe', seed: id + 2 });
+        } else if (sub === 9) {
+          lv.planets.push({ x: cx, y: cy, r: 62, mass: 1550, type: 'rocky', color: '#2b82ff', atmo: '#00f2fe', seed: id });
+          lv.crystals.push({ id: 'c1', x: cx - 150, y: cy - 110, r: 30 });
+          lv.crystals.push({ id: 'c2', x: cx + 150, y: cy + 110, r: 30 });
+          lv.asteroids.push({ x: cx, y: cy - 180, r: 24 });
+        } else { // sub === 10 (Boss)
+          lv.planets.push({ x: cx - 60, y: cy, r: 68, mass: 1750, type: 'gas', color: '#0052d4', atmo: '#4364f7', seed: id });
+          lv.planets.push({ x: cx + 220, y: cy - 120, r: 42, mass: 850, type: 'rocky', color: '#6fb1fc', atmo: '#00f2fe', seed: id + 3 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 320, y1: cy - 140, x2: cx + 320, y2: cy + 140 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 160, y: cy + 150, r: 28 });
+          lv.crystals.push({ id: 'c1', x: cx + 60, y: cy - 150, r: 30 });
+        }
+      }
+
+      // ---------------- SECTOR 2: KHÔNG GIAN TÍM THẲM (Wormholes & Satellites) ----------------
+      else if (sector === 2) {
+        if (sub === 1) {
+          lv.planets.push({ x: cx, y: cy, r: 62, mass: 1450, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id });
+          lv.wormholes.push({ x1: cx - 260, y1: cy - 130, x2: cx + 260, y2: cy + 130, r: 34, color1: '#ff2a85', color2: '#00f2fe' });
+        } else if (sub === 2) {
+          lv.planets.push({ x: cx + 40, y: cy + 30, r: 64, mass: 1550, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id });
+          lv.wormholes.push({ x1: cx - 300, y1: cy + 140, x2: cx + 200, y2: cy - 160, r: 34, color1: '#ff2a85', color2: '#00f2fe' });
+          lv.asteroids.push({ x: cx - 80, y: cy - 120, r: 25 });
+        } else if (sub === 3) {
+          lv.planets.push({ x: cx - 150, y: cy - 70, r: 54, mass: 1200, type: 'rocky', color: '#7928ca', atmo: '#ff007f', seed: id });
+          lv.planets.push({ x: cx + 150, y: cy + 70, r: 54, mass: 1200, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id + 1 });
+          lv.wormholes.push({ x1: cx - 280, y1: cy + 150, x2: cx + 280, y2: cy - 150, r: 34, color1: '#ff007f', color2: '#7928ca' });
+        } else if (sub === 4) {
+          lv.planets.push({ x: cx, y: cy, r: 65, mass: 1600, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id });
+          lv.wormholes.push({ x1: cx + 180, y1: cy - 160, x2: cx - 220, y2: cy + 140, r: 34, color1: '#ff2a85', color2: '#00f2fe' });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 170, r: 32 });
+        } else if (sub === 5) {
+          lv.planets.push({ x: cx - 80, y: cy, r: 60, mass: 1400, type: 'gas', color: '#4a00e0', atmo: '#8e2de2', seed: id });
+          lv.antiGravity.push({ x: cx + 160, y: cy, r: 70, strength: 750 });
+          lv.wormholes.push({ x1: cx - 280, y1: cy - 140, x2: cx + 320, y2: cy + 140, r: 34, color1: '#ff2a85', color2: '#00f2fe' });
+        } else if (sub === 6) {
+          lv.planets.push({ x: cx, y: cy - 60, r: 66, mass: 1650, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id });
+          lv.antiGravity.push({ x: cx, y: cy + 150, r: 80, strength: 850 });
+          lv.wormholes.push({ x1: cx - 320, y1: cy + 120, x2: cx + 280, y2: cy - 160, r: 34, color1: '#ff007f', color2: '#00f2fe' });
+          lv.crystals.push({ id: 'c1', x: cx + 160, y: cy + 70, r: 32 });
+        } else if (sub === 7) {
+          lv.planets.push({ x: cx - 180, y: cy + 60, r: 56, mass: 1300, type: 'ringed', color: '#7928ca', atmo: '#ff007f', ringColor: '#e040fb', seed: id });
+          lv.planets.push({ x: cx + 160, y: cy - 80, r: 52, mass: 1150, type: 'rocky', color: '#8e2de2', atmo: '#ff2a85', seed: id + 2 });
+          lv.wormholes.push({ x1: cx - 320, y1: cy - 150, x2: cx + 300, y2: cy + 150, r: 34, color1: '#00f2fe', color2: '#ff2a85' });
+          lv.asteroids.push({ x: cx, y: cy - 40, r: 26 });
+          lv.asteroids.push({ x: cx, y: cy + 80, r: 24 });
+        } else if (sub === 8) {
+          lv.planets.push({ x: cx, y: cy, r: 66, mass: 1700, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id });
+          lv.antiGravity.push({ x: cx - 180, y: cy - 120, r: 75, strength: 800 });
+          lv.antiGravity.push({ x: cx + 180, y: cy + 120, r: 75, strength: 800 });
+          lv.wormholes.push({ x1: cx - 340, y1: cy + 140, x2: cx + 340, y2: cy - 140, r: 34, color1: '#ff007f', color2: '#7928ca' });
+        } else if (sub === 9) {
+          lv.planets.push({ x: cx - 140, y: cy - 60, r: 58, mass: 1350, type: 'ringed', color: '#8e2de2', atmo: '#ff2a85', ringColor: '#e040fb', seed: id });
+          lv.planets.push({ x: cx + 140, y: cy + 60, r: 58, mass: 1350, type: 'gas', color: '#4a00e0', atmo: '#8e2de2', seed: id + 1 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 150, r: 32 });
+          lv.crystals.push({ id: 'c2', x: cx, y: cy + 150, r: 32 });
+          lv.wormholes.push({ x1: cx - 330, y1: cy + 130, x2: cx + 330, y2: cy - 130, r: 34, color1: '#ff2a85', color2: '#00f2fe' });
+        } else { // sub === 10 (Sector 2 Boss)
+          lv.planets.push({ x: cx, y: cy - 40, r: 72, mass: 1900, type: 'ringed', color: '#7928ca', atmo: '#ff007f', ringColor: '#e040fb', seed: id });
+          lv.antiGravity.push({ x: cx - 160, y: cy + 160, r: 85, strength: 900 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 360, y1: cy - 160, x2: cx + 360, y2: cy + 160 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 160, y: cy - 180, r: 30 });
+          lv.wormholes.push({ x1: cx - 360, y1: cy + 120, x2: cx + 220, y2: cy - 160, r: 36, color1: '#ff2a85', color2: '#00f2fe' });
+          lv.crystals.push({ id: 'c1', x: cx + 180, y: cy + 140, r: 32 });
+        }
+      }
+
+      // ---------------- SECTOR 3: TINH CẦU RỰC LỬA (Dual Suns & Deep Gravity) ----------------
+      else if (sector === 3) {
+        if (sub === 1) {
+          lv.planets.push({ x: cx, y: cy, r: 66, mass: 1650, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.asteroids.push({ x: cx - 180, y: cy - 140, r: 26 });
+          lv.asteroids.push({ x: cx + 180, y: cy + 140, r: 26 });
+        } else if (sub === 2) {
+          lv.planets.push({ x: cx, y: cy - 120, r: 58, mass: 1400, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.planets.push({ x: cx, y: cy + 120, r: 58, mass: 1400, type: 'sun', color: '#ff4b2b', atmo: '#ff416c', seed: id + 1 });
+        } else if (sub === 3) {
+          lv.planets.push({ x: cx - 120, y: cy, r: 64, mass: 1600, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.planets.push({ x: cx + 160, y: cy - 80, r: 46, mass: 950, type: 'rocky', color: '#f7971e', atmo: '#ffd200', seed: id + 2 });
+          lv.asteroids.push({ x: cx + 30, y: cy + 140, r: 26 });
+          lv.asteroids.push({ x: cx + 130, y: cy + 160, r: 24 });
+        } else if (sub === 4) {
+          lv.planets.push({ x: cx, y: cy - 40, r: 68, mass: 1750, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.mirrors.push({ x1: cx - 220, y1: cy + 180, x2: cx - 80, y2: cy + 240 });
+        } else if (sub === 5) {
+          lv.planets.push({ x: cx - 140, y: cy - 80, r: 60, mass: 1450, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.planets.push({ x: cx + 140, y: cy + 80, r: 60, mass: 1450, type: 'sun', color: '#ff4b2b', atmo: '#ff416c', seed: id + 1 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy, r: 34 });
+        } else if (sub === 6) {
+          lv.planets.push({ x: cx - 180, y: cy + 40, r: 62, mass: 1550, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.planets.push({ x: cx + 140, y: cy - 100, r: 52, mass: 1200, type: 'sun', color: '#ff4b2b', atmo: '#ff416c', seed: id + 2 });
+          lv.antiGravity.push({ x: cx + 80, y: cy + 140, r: 75, strength: 800 });
+        } else if (sub === 7) {
+          lv.planets.push({ x: cx, y: cy, r: 70, mass: 1850, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.mirrors.push({ x1: cx - 260, y1: cy - 180, x2: cx - 120, y2: cy - 240 });
+          lv.mirrors.push({ x1: cx + 120, y1: cy + 240, x2: cx + 260, y2: cy + 180 });
+        } else if (sub === 8) {
+          lv.planets.push({ x: cx - 100, y: cy - 90, r: 62, mass: 1500, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.planets.push({ x: cx + 120, y: cy + 90, r: 62, mass: 1500, type: 'sun', color: '#ff4b2b', atmo: '#ff416c', seed: id + 1 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 380, y1: cy - 160, x2: cx + 380, y2: cy + 160 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 220, y: cy + 160, r: 30 });
+          lv.asteroids.push({ x: cx, y: cy, r: 28 });
+        } else if (sub === 9) {
+          lv.planets.push({ x: cx - 200, y: cy, r: 58, mass: 1400, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id });
+          lv.planets.push({ x: cx, y: cy - 130, r: 52, mass: 1200, type: 'sun', color: '#ff4b2b', atmo: '#ff416c', seed: id + 1 });
+          lv.planets.push({ x: cx + 200, y: cy + 40, r: 58, mass: 1400, type: 'sun', color: '#ff416c', atmo: '#ff4b2b', seed: id + 2 });
+          lv.crystals.push({ id: 'c1', x: cx - 70, y: cy + 120, r: 32 });
+          lv.crystals.push({ id: 'c2', x: cx + 80, y: cy - 180, r: 32 });
+        } else { // sub === 10 (Sector 3 Boss: Solar Core)
+          lv.planets.push({ x: cx, y: cy, r: 78, mass: 2200, type: 'sun', color: '#ff1744', atmo: '#ff8a80', seed: id });
+          lv.mirrors.push({ x1: cx - 280, y1: cy + 200, x2: cx - 140, y2: cy + 260 });
+          lv.mirrors.push({ x1: cx + 140, y1: cy - 260, x2: cx + 280, y2: cy - 200 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 420, y1: cy - 180, x2: cx + 420, y2: cy + 180 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy + 220, r: 32 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 220, r: 34 });
+          lv.asteroids.push({ x: cx - 220, y: cy - 140, r: 26 });
+          lv.asteroids.push({ x: cx + 220, y: cy + 140, r: 26 });
+        }
+      }
+
+      // ---------------- SECTOR 4: VÀNH ĐAI TINH THỂ (Star Crystals & Deflector Mirrors) ----------------
+      else if (sector === 4) {
+        if (sub === 1) {
+          lv.planets.push({ x: cx, y: cy, r: 64, mass: 1550, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.mirrors.push({ x1: cx - 180, y1: cy - 160, x2: cx - 60, y2: cy - 220 });
+          lv.mirrors.push({ x1: cx + 60, y1: cy + 220, x2: cx + 180, y2: cy + 160 });
+        } else if (sub === 2) {
+          lv.planets.push({ x: cx - 150, y: cy - 70, r: 56, mass: 1300, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.planets.push({ x: cx + 150, y: cy + 70, r: 56, mass: 1300, type: 'rocky', color: '#4facfe', atmo: '#00f2fe', seed: id + 1 });
+          lv.mirrors.push({ x1: cx - 240, y1: cy + 160, x2: cx - 100, y2: cy + 200 });
+          lv.mirrors.push({ x1: cx + 100, y1: cy - 200, x2: cx + 240, y2: cy - 160 });
+        } else if (sub === 3) {
+          lv.planets.push({ x: cx, y: cy, r: 66, mass: 1650, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.crystals.push({ id: 'c1', x: cx - 180, y: cy - 120, r: 32 });
+          lv.crystals.push({ id: 'c2', x: cx + 180, y: cy + 120, r: 32 });
+          lv.crystals.push({ id: 'c3', x: cx, y: cy + 180, r: 32 });
+        } else if (sub === 4) {
+          lv.planets.push({ x: cx, y: cy - 50, r: 68, mass: 1700, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.mirrors.push({ x1: cx - 280, y1: cy + 180, x2: cx - 140, y2: cy + 240 });
+          lv.mirrors.push({ x1: cx, y1: cy + 260, x2: cx + 140, y2: cy + 260 });
+          lv.mirrors.push({ x1: cx + 200, y1: cy + 180, x2: cx + 300, y2: cy + 100 });
+        } else if (sub === 5) {
+          lv.planets.push({ x: cx - 120, y: cy, r: 62, mass: 1450, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.accelRings.push({ x: cx - 320, y: cy - 140, angle: 0.35, r: 42, boost: 280 });
+          lv.mirrors.push({ x1: cx + 120, y1: cy - 200, x2: cx + 240, y2: cy - 140 });
+          lv.crystals.push({ id: 'c1', x: cx + 80, y: cy + 140, r: 32 });
+        } else if (sub === 6) {
+          lv.planets.push({ x: cx - 160, y: cy - 60, r: 60, mass: 1400, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.planets.push({ x: cx + 160, y: cy + 60, r: 60, mass: 1400, type: 'crystal', color: '#4facfe', atmo: '#00f2fe', seed: id + 1 });
+          lv.antiGravity.push({ x: cx, y: cy, r: 75, strength: 800 });
+          lv.mirrors.push({ x1: cx - 280, y1: cy + 180, x2: cx - 160, y2: cy + 220 });
+        } else if (sub === 7) {
+          lv.planets.push({ x: cx, y: cy, r: 68, mass: 1750, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.mirrors.push({ x1: cx - 260, y1: cy - 180, x2: cx - 140, y2: cy - 240 });
+          lv.mirrors.push({ x1: cx + 140, y1: cy + 240, x2: cx + 260, y2: cy + 180 });
+          lv.mirrors.push({ x1: cx - 140, y1: cy + 220, x2: cx - 260, y2: cy + 160 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 180, r: 32 });
+          lv.crystals.push({ id: 'c2', x: cx, y: cy + 180, r: 32 });
+        } else if (sub === 8) {
+          lv.planets.push({ x: cx - 100, y: cy - 60, r: 64, mass: 1550, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.accelRings.push({ x: cx - 350, y: cy + 140, angle: -0.4, r: 42, boost: 300 });
+          lv.mirrors.push({ x1: cx + 180, y1: cy - 180, x2: cx + 300, y2: cy - 120 });
+          lv.asteroids.push({ x: cx + 60, y: cy + 100, r: 26 });
+          lv.asteroids.push({ x: cx + 120, y: cy + 160, r: 24 });
+        } else if (sub === 9) {
+          lv.planets.push({ x: cx - 200, y: cy - 80, r: 56, mass: 1300, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.planets.push({ x: cx, y: cy + 100, r: 60, mass: 1450, type: 'crystal', color: '#4facfe', atmo: '#00f2fe', seed: id + 1 });
+          lv.planets.push({ x: cx + 200, y: cy - 80, r: 56, mass: 1300, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id + 2 });
+          lv.mirrors.push({ x1: cx - 100, y1: cy - 220, x2: cx + 100, y2: cy - 220 });
+          lv.crystals.push({ id: 'c1', x: cx - 80, y: cy - 60, r: 32 });
+          lv.crystals.push({ id: 'c2', x: cx + 80, y: cy - 60, r: 32 });
+          lv.crystals.push({ id: 'c3', x: cx, y: cy + 240, r: 32 });
+        } else { // sub === 10 (Sector 4 Boss)
+          lv.planets.push({ x: cx, y: cy, r: 74, mass: 2000, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.mirrors.push({ x1: cx - 300, y1: cy - 200, x2: cx - 180, y2: cy - 260 });
+          lv.mirrors.push({ x1: cx + 180, y1: cy + 260, x2: cx + 300, y2: cy + 200 });
+          lv.accelRings.push({ x: cx - 360, y: cy + 180, angle: -0.35, r: 44, boost: 300 });
+          lv.accelRings.push({ x: cx + 220, y: cy - 180, angle: 0.35, r: 44, boost: 300 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 450, y1: cy - 180, x2: cx + 450, y2: cy + 180 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 180, y: cy + 220, r: 32 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 220, r: 34 });
+          lv.crystals.push({ id: 'c2', x: cx, y: cy + 220, r: 34 });
+        }
+      }
+
+      // ---------------- SECTOR 5: VỰC THẲM ĐIỆN TỪ (Pulsars & Hyper-Rings) ----------------
+      else if (sector === 5) {
+        if (sub === 1) {
+          lv.pulsars.push({ x: cx, y: cy, r: 34, mass: 1500, pulsePeriod: 3.6, pulseForce: 240, phase: 0 });
+          lv.planets.push({ x: cx + 220, y: cy + 120, r: 52, mass: 1150, type: 'gas', color: '#11998e', atmo: '#38ef7d', seed: id });
+        } else if (sub === 2) {
+          lv.pulsars.push({ x: cx - 100, y: cy - 50, r: 34, mass: 1550, pulsePeriod: 3.4, pulseForce: 250, phase: 0 });
+          lv.accelRings.push({ x: cx - 340, y: cy + 120, angle: -0.35, r: 44, boost: 300 });
+          lv.accelRings.push({ x: cx + 180, y: cy - 120, angle: 0.35, r: 44, boost: 300 });
+        } else if (sub === 3) {
+          lv.pulsars.push({ x: cx - 160, y: cy - 80, r: 32, mass: 1400, pulsePeriod: 3.2, pulseForce: 220, phase: 0 });
+          lv.pulsars.push({ x: cx + 160, y: cy + 80, r: 32, mass: 1400, pulsePeriod: 3.2, pulseForce: 220, phase: Math.PI });
+        } else if (sub === 4) {
+          lv.pulsars.push({ x: cx, y: cy, r: 36, mass: 1650, pulsePeriod: 3.0, pulseForce: 260, phase: 0 });
+          lv.accelRings.push({ x: cx - 350, y: cy - 140, angle: 0.4, r: 44, boost: 320 });
+          lv.asteroids.push({ x: cx - 140, y: cy + 150, r: 26 });
+          lv.asteroids.push({ x: cx + 140, y: cy + 150, r: 26 });
+        } else if (sub === 5) {
+          lv.pulsars.push({ x: cx - 80, y: cy, r: 35, mass: 1600, pulsePeriod: 3.2, pulseForce: 250, phase: 0 });
+          lv.crystals.push({ id: 'c1', x: cx + 160, y: cy - 140, r: 34 });
+          lv.crystals.push({ id: 'c2', x: cx + 160, y: cy + 140, r: 34 });
+        } else if (sub === 6) {
+          lv.pulsars.push({ x: cx - 140, y: cy - 60, r: 34, mass: 1500, pulsePeriod: 3.0, pulseForce: 240, phase: 0 });
+          lv.pulsars.push({ x: cx + 140, y: cy + 60, r: 34, mass: 1500, pulsePeriod: 3.0, pulseForce: 240, phase: Math.PI * 0.5 });
+          lv.mirrors.push({ x1: cx - 260, y1: cy + 180, x2: cx - 120, y2: cy + 240 });
+        } else if (sub === 7) {
+          lv.pulsars.push({ x: cx, y: cy, r: 36, mass: 1700, pulsePeriod: 2.8, pulseForce: 270, phase: 0 });
+          lv.wormholes.push({ x1: cx - 280, y1: cy - 160, x2: cx + 280, y2: cy + 160, r: 36, color1: '#11998e', color2: '#38ef7d' });
+        } else if (sub === 8) {
+          lv.pulsars.push({ x: cx - 220, y: cy, r: 32, mass: 1350, pulsePeriod: 3.0, pulseForce: 210, phase: 0 });
+          lv.pulsars.push({ x: cx, y: cy - 140, r: 32, mass: 1350, pulsePeriod: 3.0, pulseForce: 210, phase: Math.PI * 0.66 });
+          lv.pulsars.push({ x: cx + 220, y: cy + 60, r: 32, mass: 1350, pulsePeriod: 3.0, pulseForce: 210, phase: Math.PI * 1.33 });
+        } else if (sub === 9) {
+          lv.pulsars.push({ x: cx - 150, y: cy - 70, r: 35, mass: 1600, pulsePeriod: 2.8, pulseForce: 260, phase: 0 });
+          lv.pulsars.push({ x: cx + 150, y: cy + 70, r: 35, mass: 1600, pulsePeriod: 2.8, pulseForce: 260, phase: Math.PI });
+          lv.laserGates.push({ id: 'g1', x1: cx + 480, y1: cy - 180, x2: cx + 480, y2: cy + 180 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 280, y: cy + 180, r: 32 });
+          lv.accelRings.push({ x: cx - 380, y: cy - 160, angle: 0.35, r: 44, boost: 320 });
+        } else { // sub === 10 (Sector 5 Boss)
+          lv.pulsars.push({ x: cx - 180, y: cy - 120, r: 36, mass: 1750, pulsePeriod: 2.6, pulseForce: 280, phase: 0 });
+          lv.pulsars.push({ x: cx + 180, y: cy + 120, r: 36, mass: 1750, pulsePeriod: 2.6, pulseForce: 280, phase: Math.PI });
+          lv.planets.push({ x: cx, y: cy, r: 70, mass: 1900, type: 'gas', color: '#11998e', atmo: '#38ef7d', seed: id });
+          lv.accelRings.push({ x: cx - 420, y: cy + 160, angle: -0.35, r: 46, boost: 340 });
+          lv.accelRings.push({ x: cx + 280, y: cy - 160, angle: 0.35, r: 46, boost: 340 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 500, y1: cy - 200, x2: cx + 500, y2: cy + 200 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy - 220, r: 32 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy + 220, r: 34 });
+        }
+      }
+
+      // ---------------- SECTOR 6: CHIỀU KHÔNG GIAN HỖN LOẠN (Polarity Planets & Laser Gates) ----------------
+      else if (sector === 6) {
+        if (sub === 1) {
+          lv.planets.push({ x: cx, y: cy, r: 64, mass: 1600, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 4.5, polarityOffset: 0, seed: id });
+          lv.laserGates.push({ id: 'g1', x1: cx + 380, y1: cy - 180, x2: cx + 380, y2: cy + 180 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 220, y: cy + 160, r: 30 });
+        } else if (sub === 2) {
+          lv.planets.push({ x: cx - 140, y: cy, r: 62, mass: 1500, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 4.2, polarityOffset: 0, seed: id });
+          lv.planets.push({ x: cx + 180, y: cy, r: 56, mass: 1300, type: 'rocky', color: '#7928ca', atmo: '#00e5ff', seed: id + 1 });
+        } else if (sub === 3) {
+          lv.planets.push({ x: cx - 160, y: cy - 80, r: 60, mass: 1450, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 4.0, polarityOffset: 0, seed: id });
+          lv.planets.push({ x: cx + 160, y: cy + 80, r: 60, mass: 1450, type: 'polarity', color: '#ff0055', atmo: '#00e5ff', polarityPeriod: 4.0, polarityOffset: Math.PI, seed: id + 1 });
+        } else if (sub === 4) {
+          lv.planets.push({ x: cx, y: cy, r: 66, mass: 1700, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.8, polarityOffset: 0, seed: id });
+          lv.laserGates.push({ id: 'g1', x1: cx + 350, y1: cy - 180, x2: cx + 350, y2: cy + 180 });
+          lv.laserGates.push({ id: 'g2', x1: cx + 550, y1: cy - 160, x2: cx + 550, y2: cy + 160 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 200, y: cy - 180, r: 30 });
+          lv.switches.push({ id: 'sw2', gateId: 'g2', x: cx + 180, y: cy + 180, r: 30 });
+        } else if (sub === 5) {
+          lv.planets.push({ x: cx - 120, y: cy - 50, r: 62, mass: 1550, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.8, polarityOffset: 0, seed: id });
+          lv.wormholes.push({ x1: cx - 340, y1: cy + 160, x2: cx + 300, y2: cy - 160, r: 36, color1: '#00e5ff', color2: '#ff0055' });
+          lv.crystals.push({ id: 'c1', x: cx + 80, y: cy + 140, r: 34 });
+        } else if (sub === 6) {
+          lv.planets.push({ x: cx - 160, y: cy, r: 64, mass: 1600, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.6, polarityOffset: 0, seed: id });
+          lv.planets.push({ x: cx + 160, y: cy, r: 64, mass: 1600, type: 'polarity', color: '#ff0055', atmo: '#00e5ff', polarityPeriod: 3.6, polarityOffset: Math.PI, seed: id + 1 });
+          lv.accelRings.push({ x: cx - 400, y: cy - 160, angle: 0.35, r: 44, boost: 320 });
+        } else if (sub === 7) {
+          lv.planets.push({ x: cx, y: cy - 60, r: 68, mass: 1800, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.5, polarityOffset: 0, seed: id });
+          lv.mirrors.push({ x1: cx - 280, y1: cy + 200, x2: cx - 140, y2: cy + 260 });
+          lv.mirrors.push({ x1: cx + 140, y1: cy + 260, x2: cx + 280, y2: cy + 200 });
+        } else if (sub === 8) {
+          lv.planets.push({ x: cx - 180, y: cy - 60, r: 62, mass: 1500, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.4, polarityOffset: 0, seed: id });
+          lv.planets.push({ x: cx + 180, y: cy + 60, r: 62, mass: 1500, type: 'polarity', color: '#ff0055', atmo: '#00e5ff', polarityPeriod: 3.4, polarityOffset: Math.PI, seed: id + 1 });
+          lv.pulsars.push({ x: cx, y: cy, r: 34, mass: 1500, pulsePeriod: 3.0, pulseForce: 250, phase: 0 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 520, y1: cy - 200, x2: cx + 520, y2: cy + 200 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy - 220, r: 32 });
+        } else if (sub === 9) {
+          lv.planets.push({ x: cx, y: cy, r: 70, mass: 1900, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 2.8, polarityOffset: 0, seed: id });
+          lv.crystals.push({ id: 'c1', x: cx - 200, y: cy - 160, r: 34 });
+          lv.crystals.push({ id: 'c2', x: cx + 200, y: cy + 160, r: 34 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 540, y1: cy - 200, x2: cx + 540, y2: cy + 200 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 300, y: cy + 180, r: 32 });
+        } else { // sub === 10 (Sector 6 Boss)
+          lv.planets.push({ x: cx - 220, y: cy - 90, r: 66, mass: 1750, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.0, polarityOffset: 0, seed: id });
+          lv.planets.push({ x: cx + 220, y: cy + 90, r: 66, mass: 1750, type: 'polarity', color: '#ff0055', atmo: '#00e5ff', polarityPeriod: 3.0, polarityOffset: Math.PI, seed: id + 1 });
+          lv.pulsars.push({ x: cx, y: cy, r: 36, mass: 1650, pulsePeriod: 2.8, pulseForce: 260, phase: 0 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 460, y1: cy - 220, x2: cx + 460, y2: cy + 220 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 120, y: cy + 240, r: 32 });
+          lv.mirrors.push({ x1: cx - 360, y1: cy + 220, x2: cx - 220, y2: cy + 280 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 240, r: 34 });
+        }
+      }
+
+      // ---------------- SECTOR 7: BÃO TỪ ĐA CHIỀU (Drag Zones & Magnetic Storms) ----------------
+      else if (sector === 7) {
+        if (sub === 1) {
+          lv.planets.push({ x: cx, y: cy, r: 68, mass: 1800, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id });
+          lv.dragZones.push({ x: cx - 200, y: cy - 140, w: 400, h: 280, drag: 0.045 });
+        } else if (sub === 2) {
+          lv.planets.push({ x: cx - 160, y: cy, r: 62, mass: 1550, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id });
+          lv.planets.push({ x: cx + 180, y: cy, r: 62, mass: 1550, type: 'rocky', color: '#ff5858', atmo: '#f857a6', seed: id + 1 });
+          lv.dragZones.push({ x: cx - 80, y: cy - 180, w: 160, h: 360, drag: 0.05 });
+        } else if (sub === 3) {
+          lv.planets.push({ x: cx, y: cy - 60, r: 66, mass: 1700, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id });
+          lv.dragZones.push({ x: cx - 180, y: cy + 80, w: 360, h: 220, drag: 0.055 });
+          lv.accelRings.push({ x: cx - 400, y: cy - 160, angle: 0.35, r: 46, boost: 340 });
+          lv.mirrors.push({ x1: cx + 160, y1: cy - 220, x2: cx + 300, y2: cy - 160 });
+        } else if (sub === 4) {
+          lv.planets.push({ x: cx, y: cy, r: 70, mass: 1900, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id });
+          lv.dragZones.push({ x: cx - 220, y: cy - 220, w: 440, h: 440, drag: 0.04 });
+          lv.wormholes.push({ x1: cx - 380, y1: cy + 180, x2: cx + 380, y2: cy - 180, r: 38, color1: '#f857a6', color2: '#ff5858' });
+        } else if (sub === 5) {
+          lv.planets.push({ x: cx, y: cy, r: 66, mass: 1750, type: 'polarity', color: '#00e5ff', atmo: '#f857a6', polarityPeriod: 3.6, polarityOffset: 0, seed: id });
+          lv.dragZones.push({ x: cx - 160, y: cy - 140, w: 320, h: 280, drag: 0.05 });
+          lv.crystals.push({ id: 'c1', x: cx + 180, y: cy - 180, r: 34 });
+          lv.crystals.push({ id: 'c2', x: cx - 180, y: cy + 180, r: 34 });
+        } else if (sub === 6) {
+          lv.planets.push({ x: cx - 180, y: cy - 80, r: 64, mass: 1650, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id });
+          lv.planets.push({ x: cx + 180, y: cy + 80, r: 64, mass: 1650, type: 'gas', color: '#ff5858', atmo: '#f857a6', seed: id + 1 });
+          lv.dragZones.push({ x: cx - 320, y: cy - 120, w: 220, h: 240, drag: 0.05 });
+          lv.dragZones.push({ x: cx + 100, y: cy - 120, w: 220, h: 240, drag: 0.05 });
+          lv.accelRings.push({ x: cx - 450, y: cy + 180, angle: -0.35, r: 46, boost: 340 });
+        } else if (sub === 7) {
+          lv.planets.push({ x: cx - 220, y: cy + 60, r: 60, mass: 1500, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id });
+          lv.planets.push({ x: cx, y: cy - 120, r: 64, mass: 1650, type: 'rocky', color: '#ff5858', atmo: '#f857a6', seed: id + 1 });
+          lv.planets.push({ x: cx + 220, y: cy + 60, r: 60, mass: 1500, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id + 2 });
+          lv.dragZones.push({ x: cx - 120, y: cy, w: 240, h: 240, drag: 0.055 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 540, y1: cy - 220, x2: cx + 540, y2: cy + 220 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy + 240, r: 32 });
+        } else if (sub === 8) {
+          lv.pulsars.push({ x: cx, y: cy, r: 36, mass: 1750, pulsePeriod: 2.8, pulseForce: 270, phase: 0 });
+          lv.dragZones.push({ x: cx - 220, y: cy - 160, w: 440, h: 320, drag: 0.045 });
+          lv.mirrors.push({ x1: cx - 320, y1: cy + 220, x2: cx - 180, y2: cy + 280 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 220, r: 34 });
+        } else if (sub === 9) {
+          lv.planets.push({ x: cx, y: cy, r: 72, mass: 2000, type: 'gas', color: '#f857a6', atmo: '#ff5858', seed: id });
+          lv.dragZones.push({ x: goalX - 250, y: safeGoalY - 200, w: 300, h: 400, drag: 0.06 });
+          lv.accelRings.push({ x: cx - 420, y: cy - 180, angle: 0.35, r: 46, boost: 360 });
+          lv.crystals.push({ id: 'c1', x: cx - 150, y: cy + 180, r: 34 });
+        } else { // sub === 10 (Sector 7 Boss)
+          lv.planets.push({ x: cx - 200, y: cy - 80, r: 68, mass: 1850, type: 'polarity', color: '#00e5ff', atmo: '#f857a6', polarityPeriod: 3.2, polarityOffset: 0, seed: id });
+          lv.planets.push({ x: cx + 200, y: cy + 80, r: 68, mass: 1850, type: 'polarity', color: '#f857a6', atmo: '#00e5ff', polarityPeriod: 3.2, polarityOffset: Math.PI, seed: id + 1 });
+          lv.dragZones.push({ x: cx - 160, y: cy - 160, w: 320, h: 320, drag: 0.06 });
+          lv.accelRings.push({ x: cx - 460, y: cy + 200, angle: -0.35, r: 46, boost: 350 });
+          lv.accelRings.push({ x: cx + 320, y: cy - 200, angle: 0.35, r: 46, boost: 350 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 580, y1: cy - 240, x2: cx + 580, y2: cy + 240 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy - 240, r: 34 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy + 240, r: 36 });
+        }
+      }
+
+      // ---------------- SECTOR 8: QUẦN THỂ HỐ ĐEN (Supermassive Black Holes) ----------------
+      else if (sector === 8) {
+        if (sub === 1) {
+          lv.blackHoles.push({ x: cx, y: cy, r: 52, mass: 2400, pullRadius: 480 });
+          lv.planets.push({ x: cx + 240, y: cy + 140, r: 56, mass: 1350, type: 'rocky', color: '#434343', atmo: '#282828', seed: id });
+        } else if (sub === 2) {
+          lv.blackHoles.push({ x: cx - 80, y: cy, r: 54, mass: 2500, pullRadius: 500 });
+          lv.wormholes.push({ x1: cx - 380, y1: cy - 180, x2: cx + 340, y2: cy + 180, r: 38, color1: '#ff0055', color2: '#7928ca' });
+        } else if (sub === 3) {
+          lv.blackHoles.push({ x: cx - 180, y: cy - 100, r: 46, mass: 2100, pullRadius: 420 });
+          lv.blackHoles.push({ x: cx + 180, y: cy + 100, r: 46, mass: 2100, pullRadius: 420 });
+        } else if (sub === 4) {
+          lv.blackHoles.push({ x: cx, y: cy - 50, r: 56, mass: 2600, pullRadius: 520 });
+          lv.mirrors.push({ x1: cx - 300, y1: cy + 220, x2: cx - 140, y2: cy + 280 });
+          lv.mirrors.push({ x1: cx + 140, y1: cy + 280, x2: cx + 300, y2: cy + 220 });
+        } else if (sub === 5) {
+          lv.blackHoles.push({ x: cx, y: cy, r: 56, mass: 2650, pullRadius: 540 });
+          lv.crystals.push({ id: 'c1', x: cx - 220, y: cy - 160, r: 34 });
+          lv.crystals.push({ id: 'c2', x: cx + 220, y: cy + 160, r: 34 });
+          lv.crystals.push({ id: 'c3', x: cx, y: cy + 240, r: 34 });
+        } else if (sub === 6) {
+          lv.blackHoles.push({ x: cx - 180, y: cy, r: 48, mass: 2250, pullRadius: 440 });
+          lv.blackHoles.push({ x: cx + 180, y: cy, r: 48, mass: 2250, pullRadius: 440 });
+          lv.accelRings.push({ x: cx - 440, y: cy - 180, angle: 0.35, r: 46, boost: 340 });
+        } else if (sub === 7) {
+          lv.blackHoles.push({ x: cx - 100, y: cy, r: 56, mass: 2600, pullRadius: 520 });
+          lv.antiGravity.push({ x: cx + 220, y: cy, r: 90, strength: 1000 });
+        } else if (sub === 8) {
+          lv.blackHoles.push({ x: cx - 200, y: cy - 90, r: 48, mass: 2200, pullRadius: 440 });
+          lv.blackHoles.push({ x: cx + 200, y: cy + 90, r: 48, mass: 2200, pullRadius: 440 });
+          lv.planets.push({ x: cx, y: cy, r: 66, mass: 1800, type: 'sun', color: '#ff1744', atmo: '#ff8a80', seed: id });
+          lv.laserGates.push({ id: 'g1', x1: cx + 600, y1: cy - 240, x2: cx + 600, y2: cy + 240 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy - 240, r: 34 });
+        } else if (sub === 9) {
+          lv.blackHoles.push({ x: cx - 220, y: cy + 80, r: 46, mass: 2150, pullRadius: 420 });
+          lv.blackHoles.push({ x: cx, y: cy - 140, r: 46, mass: 2150, pullRadius: 420 });
+          lv.blackHoles.push({ x: cx + 220, y: cy + 80, r: 46, mass: 2150, pullRadius: 420 });
+          lv.crystals.push({ id: 'c1', x: cx - 80, y: cy - 40, r: 34 });
+          lv.crystals.push({ id: 'c2', x: cx + 80, y: cy - 40, r: 34 });
+        } else { // sub === 10 (Sector 8 Boss: Event Horizon)
+          lv.blackHoles.push({ x: cx, y: cy, r: 60, mass: 3000, pullRadius: 600 });
+          lv.blackHoles.push({ x: cx - 400, y: cy - 240, r: 42, mass: 1900, pullRadius: 380 });
+          lv.blackHoles.push({ x: cx + 400, y: cy + 240, r: 42, mass: 1900, pullRadius: 380 });
+          lv.laserGates.push({ id: 'g1', x1: cx + 650, y1: cy - 260, x2: cx + 650, y2: cy + 260 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 260, y: cy + 260, r: 34 });
+          lv.crystals.push({ id: 'c1', x: cx - 240, y: cy - 220, r: 36 });
+          lv.crystals.push({ id: 'c2', x: cx + 240, y: cy + 220, r: 36 });
+        }
+      }
+
+      // ---------------- SECTOR 9: VÙNG TÀN TÍCH LƯỢNG TỬ (Quantum Relics) ----------------
+      else if (sector === 9) {
+        if (sub === 1) {
+          lv.blackHoles.push({ x: cx - 200, y: cy, r: 50, mass: 2300, pullRadius: 460 });
+          lv.pulsars.push({ x: cx + 200, y: cy, r: 36, mass: 1700, pulsePeriod: 3.0, pulseForce: 260, phase: 0 });
+          lv.wormholes.push({ x1: cx - 420, y1: cy - 200, x2: cx + 420, y2: cy + 200, r: 38, color1: '#00f2fe', color2: '#7928ca' });
+        } else if (sub === 2) {
+          lv.planets.push({ x: cx, y: cy, r: 68, mass: 1850, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.4, polarityOffset: 0, seed: id });
+          lv.accelRings.push({ x: cx - 450, y: cy - 180, angle: 0.35, r: 46, boost: 340 });
+          lv.mirrors.push({ x1: cx + 200, y1: cy - 260, x2: cx + 340, y2: cy - 200 });
+          lv.dragZones.push({ x: cx - 180, y: cy + 120, w: 360, h: 240, drag: 0.05 });
+        } else if (sub === 3) {
+          lv.pulsars.push({ x: cx - 220, y: cy - 100, r: 35, mass: 1650, pulsePeriod: 2.8, pulseForce: 260, phase: 0 });
+          lv.pulsars.push({ x: cx + 220, y: cy + 100, r: 35, mass: 1650, pulsePeriod: 2.8, pulseForce: 260, phase: Math.PI });
+          lv.laserGates.push({ id: 'g1', x1: cx + 660, y1: cy - 260, x2: cx + 660, y2: cy + 260 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy - 260, r: 34 });
+        } else if (sub === 4) {
+          lv.blackHoles.push({ x: cx - 220, y: cy, r: 50, mass: 2400, pullRadius: 480 });
+          lv.blackHoles.push({ x: cx + 220, y: cy, r: 50, mass: 2400, pullRadius: 480 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy - 220, r: 36 });
+          lv.crystals.push({ id: 'c2', x: cx, y: cy + 220, r: 36 });
+          lv.crystals.push({ id: 'c3', x: cx, y: cy, r: 36 });
+        } else if (sub === 5) {
+          lv.planets.push({ x: cx - 220, y: cy - 80, r: 64, mass: 1700, type: 'crystal', color: '#00f2fe', atmo: '#4facfe', seed: id });
+          lv.planets.push({ x: cx + 220, y: cy + 80, r: 64, mass: 1700, type: 'crystal', color: '#4facfe', atmo: '#00f2fe', seed: id + 1 });
+          lv.accelRings.push({ x: cx - 500, y: cy + 200, angle: -0.35, r: 46, boost: 350 });
+          lv.accelRings.push({ x: cx + 360, y: cy - 200, angle: 0.35, r: 46, boost: 350 });
+          lv.mirrors.push({ x1: cx - 120, y1: cy - 260, x2: cx + 120, y2: cy - 260 });
+        } else if (sub === 6) {
+          lv.blackHoles.push({ x: cx - 180, y: cy, r: 52, mass: 2500, pullRadius: 500 });
+          lv.planets.push({ x: cx + 200, y: cy, r: 66, mass: 1800, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.2, polarityOffset: 0, seed: id });
+          lv.antiGravity.push({ x: cx, y: cy + 220, r: 90, strength: 1000 });
+        } else if (sub === 7) {
+          lv.pulsars.push({ x: cx - 240, y: cy - 120, r: 36, mass: 1700, pulsePeriod: 2.6, pulseForce: 270, phase: 0 });
+          lv.pulsars.push({ x: cx + 240, y: cy + 120, r: 36, mass: 1700, pulsePeriod: 2.6, pulseForce: 270, phase: Math.PI });
+          lv.laserGates.push({ id: 'g1', x1: cx + 550, y1: cy - 260, x2: cx + 550, y2: cy + 260 });
+          lv.laserGates.push({ id: 'g2', x1: cx + 750, y1: cy - 220, x2: cx + 750, y2: cy + 220 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 340, y: cy + 240, r: 34 });
+          lv.switches.push({ id: 'sw2', gateId: 'g2', x: cx + 120, y: cy - 260, r: 34 });
+        } else if (sub === 8) {
+          lv.blackHoles.push({ x: cx - 240, y: cy - 100, r: 50, mass: 2450, pullRadius: 490 });
+          lv.planets.push({ x: cx, y: cy + 140, r: 70, mass: 1950, type: 'sun', color: '#ff1744', atmo: '#ff8a80', seed: id });
+          lv.planets.push({ x: cx + 240, y: cy - 100, r: 64, mass: 1700, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.0, polarityOffset: 0, seed: id + 1 });
+          lv.crystals.push({ id: 'c1', x: cx - 100, y: cy - 240, r: 36 });
+          lv.crystals.push({ id: 'c2', x: cx + 100, y: cy - 240, r: 36 });
+        } else if (sub === 9) {
+          lv.blackHoles.push({ x: cx - 220, y: cy, r: 52, mass: 2550, pullRadius: 510 });
+          lv.blackHoles.push({ x: cx + 220, y: cy, r: 52, mass: 2550, pullRadius: 510 });
+          lv.accelRings.push({ x: cx - 550, y: cy - 200, angle: 0.35, r: 48, boost: 360 });
+          lv.accelRings.push({ x: cx - 120, y: cy + 240, angle: -0.4, r: 48, boost: 360 });
+          lv.accelRings.push({ x: cx + 380, y: cy - 200, angle: 0.35, r: 48, boost: 360 });
+        } else { // sub === 10 (Sector 9 Boss)
+          lv.blackHoles.push({ x: cx - 280, y: cy - 140, r: 52, mass: 2600, pullRadius: 520 });
+          lv.blackHoles.push({ x: cx + 280, y: cy + 140, r: 52, mass: 2600, pullRadius: 520 });
+          lv.pulsars.push({ x: cx - 280, y: cy + 140, r: 36, mass: 1750, pulsePeriod: 2.6, pulseForce: 280, phase: 0 });
+          lv.pulsars.push({ x: cx + 280, y: cy - 140, r: 36, mass: 1750, pulsePeriod: 2.6, pulseForce: 280, phase: Math.PI });
+          lv.laserGates.push({ id: 'g1', x1: cx + 720, y1: cy - 280, x2: cx + 720, y2: cy + 280 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx, y: cy - 280, r: 34 });
+          lv.crystals.push({ id: 'c1', x: cx, y: cy + 280, r: 36 });
+          lv.crystals.push({ id: 'c2', x: cx, y: cy, r: 36 });
+        }
+      }
+
+      // ---------------- SECTOR 10: CỰC HẠN VÔ CỰC (The Omniverse Zenith, Levels 91-99) ----------------
+      else {
+        const offset = (sub - 5) * 60;
+        lv.blackHoles.push({ x: cx + offset * 0.5, y: cy - 160 + (sub % 3) * 60, r: 54, mass: 2700, pullRadius: 540 });
+        lv.planets.push({ x: cx - 320, y: cy + 160, r: 72, mass: 2000, type: 'sun', color: '#ff3d00', atmo: '#ff9800', seed: id });
+        lv.planets.push({ x: cx + 320, y: cy - 160, r: 66, mass: 1800, type: 'polarity', color: '#00e5ff', atmo: '#ff0055', polarityPeriod: 3.2, polarityOffset: (sub * 0.5) % (Math.PI * 2), seed: id + 1 });
+        lv.pulsars.push({ x: cx, y: cy + 220, r: 36, mass: 1750, pulsePeriod: 2.6, pulseForce: 280, phase: (sub * 0.4) % Math.PI });
+
+        lv.mirrors.push({ x1: cx - 400 + offset, y1: cy - 280, x2: cx - 260 + offset, y2: cy - 340 });
+        lv.accelRings.push({ x: cx - 600, y: cy + 180, angle: -0.35, r: 48, boost: 360 });
+
+        lv.crystals.push({ id: 'c1', x: cx - 280, y: cy - 240, r: 36 });
+        lv.crystals.push({ id: 'c2', x: cx + 280, y: cy + 240, r: 36 });
+
+        if (sub >= 4) {
+          lv.laserGates.push({ id: 'g1', x1: cx + 750, y1: cy - 280, x2: cx + 750, y2: cy + 280 });
+          lv.switches.push({ id: 'sw1', gateId: 'g1', x: cx - 180, y: cy + 280, r: 34 });
+        }
+        if (sub >= 7) {
+          lv.wormholes.push({ x1: cx - 700, y1: cy - 240, x2: cx + 550, y2: cy + 240, r: 42, color1: '#00e5ff', color2: '#e040fb' });
+        }
+      }
+
+      // Safe clearance enforcement
+      ensureSafeClearance(lv.start, 26);
+      ensureSafeClearance(lv.goal, lv.goal.r || 40);
       for (const c of lv.crystals) ensureSafeClearance(c, c.r || 30);
       for (const sw of lv.switches) ensureSafeClearance(sw, sw.r || 30);
       for (const wh of lv.wormholes) {
@@ -5044,9 +5493,9 @@
       }
 
       // Boundary Frame
-      targetCtx.strokeStyle = sector.accent + '33';
+      targetCtx.strokeStyle = sector.accent + '44';
       targetCtx.lineWidth = 3;
-      targetCtx.strokeRect(10, 10, mapW - 20, mapH - 20);
+      targetCtx.strokeRect(6, 6, mapW - 12, mapH - 12);
 
       // Celestial & Level Elements
       drawDragZones(targetCtx, lv, now);
@@ -5363,6 +5812,12 @@
     function renderMaster(now, dt) {
       ctx.save();
       ctx.scale(dpr, dpr);
+
+      // Clear full canvas buffer and fill with sector background to prevent zoom-out smear
+      ctx.clearRect(0, 0, VIRTUAL_W, VIRTUAL_H);
+      const sector = getSectorTheme();
+      ctx.fillStyle = sector.bgBot || '#050714';
+      ctx.fillRect(0, 0, VIRTUAL_W, VIRTUAL_H);
 
       // Camera Screen Shake
       if (state.screenShake > 0.2) {
@@ -5822,10 +6277,11 @@
       const distShip = Math.hypot(worldPt.x - state.ship.x, worldPt.y - state.ship.y);
 
       // Single touch near ship pulls slingshot; otherwise pans map
-      if (e.button === 0 && distShip < 125 / camera.zoom) {
+      const touchRadius = Math.max(90, 140 / camera.zoom);
+      if (e.button === 0 && distShip < touchRadius) {
         state.isDragging = true;
         maxPullHapticFired = false;
-        state.dragStart = { x: worldPt.x, y: worldPt.y };
+        state.dragStart = { x: state.ship.x, y: state.ship.y };
         state.dragCurrent = { x: worldPt.x, y: worldPt.y };
         try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
       } else {
