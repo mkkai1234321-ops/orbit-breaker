@@ -2741,7 +2741,14 @@
       }
 ];
 
-function createProceduralLevel(id) {
+
+    // ============================================================================
+    // VERIFIED LEVEL SOLVER DATA & HINTS (Levels 1-99, Level 100 boss unassisted)
+    // ============================================================================
+    const VERIFIED_HINTS = {"1":{"vx":306,"vy":-124},"2":{"vx":395,"vy":-225},"3":{"vx":310,"vy":-113},"4":{"vx":328,"vy":107},"5":{"vx":190,"vy":-140},"6":{"vx":491,"vy":-96},"7":{"vx":477,"vy":-103},"8":{"vx":491,"vy":93},"9":{"vx":356,"vy":182},"10":{"vx":491,"vy":-24},"11":{"vx":145,"vy":-297},"12":{"vx":301,"vy":-134},"13":{"vx":243,"vy":-21},"14":{"vx":237,"vy":-229},"15":{"vx":262,"vy":-72},"16":{"vx":69,"vy":-127},"17":{"vx":487,"vy":25},"18":{"vx":328,"vy":104},"19":{"vx":515,"vy":-25},"20":{"vx":462,"vy":6},"21":{"vx":191,"vy":-145},"22":{"vx":370,"vy":-165},"23":{"vx":445,"vy":-220},"24":{"vx":156,"vy":-291},"25":{"vx":200,"vy":146},"26":{"vx":294,"vy":-179},"27":{"vx":509,"vy":57},"28":{"vx":461,"vy":-120},"29":{"vx":496,"vy":-92},"30":{"vx":482,"vy":-65},"31":{"vx":129,"vy":-95},"32":{"vx":219,"vy":-140},"33":{"vx":190,"vy":-287},"34":{"vx":254,"vy":-118},"35":{"vx":475,"vy":157},"36":{"vx":338,"vy":-336},"37":{"vx":455,"vy":203},"38":{"vx":473,"vy":-49},"39":{"vx":196,"vy":-57},"40":{"vx":461,"vy":189},"41":{"vx":337,"vy":-147},"42":{"vx":249,"vy":76},"43":{"vx":98,"vy":-139},"44":{"vx":259,"vy":-144},"45":{"vx":490,"vy":49},"46":{"vx":155,"vy":75},"47":{"vx":512,"vy":-22},"48":{"vx":458,"vy":200},"49":{"vx":180,"vy":-6},"50":{"vx":448,"vy":-182},"51":{"vx":389,"vy":-48},"52":{"vx":222,"vy":214},"53":{"vx":199,"vy":-167},"54":{"vx":167,"vy":-214},"55":{"vx":368,"vy":2},"56":{"vx":377,"vy":45},"57":{"vx":504,"vy":-91},"58":{"vx":151,"vy":-39},"59":{"vx":493,"vy":153},"60":{"vx":498,"vy":-119},"61":{"vx":423,"vy":64},"62":{"vx":260,"vy":14},"63":{"vx":391,"vy":-100},"64":{"vx":498,"vy":40},"65":{"vx":470,"vy":-98},"66":{"vx":498,"vy":-50},"67":{"vx":468,"vy":137},"68":{"vx":390,"vy":-176},"69":{"vx":297,"vy":173},"70":{"vx":459,"vy":198},"71":{"vx":451,"vy":-108},"72":{"vx":162,"vy":25},"73":{"vx":353,"vy":-46},"74":{"vx":442,"vy":-176},"75":{"vx":443,"vy":239},"76":{"vx":398,"vy":-71},"77":{"vx":380,"vy":-13},"78":{"vx":432,"vy":252},"79":{"vx":192,"vy":-4},"80":{"vx":119,"vy":-14},"81":{"vx":496,"vy":-59},"82":{"vx":422,"vy":69},"83":{"vx":342,"vy":85},"84":{"vx":294,"vy":-15},"85":{"vx":398,"vy":121},"86":{"vx":476,"vy":15},"87":{"vx":396,"vy":-192},"88":{"vx":355,"vy":146},"89":{"vx":439,"vy":29},"90":{"vx":283,"vy":-110},"91":{"vx":360,"vy":63},"92":{"vx":279,"vy":-91},"93":{"vx":395,"vy":-23},"94":{"vx":198,"vy":50},"95":{"vx":376,"vy":-80},"96":{"vx":205,"vy":-48},"97":{"vx":307,"vy":56},"98":{"vx":348,"vy":9},"99":{"vx":485,"vy":137}};
+    const PROC_PLACEMENTS = {"1":{"crystals":[],"switches":[],"laserGates":[]},"2":{"crystals":[],"switches":[],"laserGates":[]},"3":{"crystals":[],"switches":[],"laserGates":[]},"4":{"crystals":[],"switches":[],"laserGates":[]},"5":{"crystals":[{"id":"c1","x":481,"y":249,"r":32}],"switches":[],"laserGates":[]},"6":{"crystals":[],"switches":[],"laserGates":[]},"7":{"crystals":[],"switches":[],"laserGates":[]},"8":{"crystals":[],"switches":[],"laserGates":[]},"9":{"crystals":[{"id":"c1","x":483,"y":391,"r":32},{"id":"c2","x":752,"y":408,"r":32}],"switches":[],"laserGates":[]},"10":{"crystals":[{"id":"c1","x":498,"y":254,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":409,"y":253,"r":32}],"laserGates":[{"id":"g1","x1":813,"y1":220,"x2":813,"y2":500}]},"11":{"crystals":[],"switches":[],"laserGates":[]},"12":{"crystals":[],"switches":[],"laserGates":[]},"13":{"crystals":[],"switches":[],"laserGates":[]},"14":{"crystals":[],"switches":[],"laserGates":[]},"15":{"crystals":[],"switches":[],"laserGates":[]},"16":{"crystals":[{"id":"c1","x":553,"y":32,"r":32}],"switches":[],"laserGates":[]},"17":{"crystals":[],"switches":[],"laserGates":[]},"18":{"crystals":[],"switches":[],"laserGates":[]},"19":{"crystals":[{"id":"c1","x":565,"y":218,"r":32},{"id":"c2","x":811,"y":293,"r":32}],"switches":[],"laserGates":[]},"20":{"crystals":[{"id":"c1","x":924,"y":230,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":309,"y":474,"r":32}],"laserGates":[{"id":"g1","x1":1039,"y1":92,"x2":1039,"y2":372}]},"21":{"crystals":[],"switches":[],"laserGates":[]},"22":{"crystals":[],"switches":[],"laserGates":[]},"23":{"crystals":[],"switches":[],"laserGates":[]},"24":{"crystals":[],"switches":[],"laserGates":[]},"25":{"crystals":[{"id":"c1","x":546,"y":413,"r":32}],"switches":[],"laserGates":[]},"26":{"crystals":[],"switches":[],"laserGates":[]},"27":{"crystals":[],"switches":[],"laserGates":[]},"28":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":492,"y":192,"r":32}],"laserGates":[{"id":"g1","x1":969,"y1":54,"x2":969,"y2":334}]},"29":{"crystals":[{"id":"c1","x":596,"y":348,"r":32},{"id":"c2","x":885,"y":388,"r":32}],"switches":[],"laserGates":[]},"30":{"crystals":[{"id":"c1","x":649,"y":558,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":529,"y":580,"r":32}],"laserGates":[{"id":"g1","x1":1025,"y1":151,"x2":1025,"y2":431}]},"31":{"crystals":[{"id":"c1","x":556,"y":234,"r":32}],"switches":[],"laserGates":[]},"32":{"crystals":[],"switches":[],"laserGates":[]},"33":{"crystals":[{"id":"c1","x":589,"y":306,"r":32}],"switches":[],"laserGates":[]},"34":{"crystals":[{"id":"c1","x":675,"y":214,"r":32}],"switches":[],"laserGates":[]},"35":{"crystals":[{"id":"c1","x":665,"y":562,"r":32}],"switches":[],"laserGates":[]},"36":{"crystals":[],"switches":[],"laserGates":[]},"37":{"crystals":[{"id":"c1","x":643,"y":530,"r":32},{"id":"c2","x":958,"y":598,"r":32}],"switches":[],"laserGates":[]},"38":{"crystals":[],"switches":[],"laserGates":[]},"39":{"crystals":[{"id":"c1","x":568,"y":532,"r":32},{"id":"c2","x":775,"y":404,"r":32},{"id":"c3","x":961,"y":268,"r":32}],"switches":[],"laserGates":[]},"40":{"crystals":[{"id":"c1","x":589,"y":627,"r":32},{"id":"c2","x":912,"y":646,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":468,"y":615,"r":32}],"laserGates":[{"id":"g1","x1":1038,"y1":502,"x2":1038,"y2":782}]},"41":{"crystals":[],"switches":[],"laserGates":[]},"42":{"crystals":[],"switches":[],"laserGates":[]},"43":{"crystals":[{"id":"c1","x":618,"y":362,"r":32}],"switches":[],"laserGates":[]},"44":{"crystals":[{"id":"c1","x":768,"y":675,"r":32}],"switches":[],"laserGates":[]},"45":{"crystals":[{"id":"c1","x":699,"y":737,"r":32},{"id":"c2","x":1012,"y":731,"r":32}],"switches":[],"laserGates":[]},"46":{"crystals":[],"switches":[],"laserGates":[]},"47":{"crystals":[],"switches":[],"laserGates":[]},"48":{"crystals":[],"switches":[],"laserGates":[]},"49":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":504,"y":684,"r":32}],"laserGates":[{"id":"g1","x1":1275,"y1":224,"x2":1275,"y2":504}]},"50":{"crystals":[{"id":"c1","x":696,"y":207,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":558,"y":242,"r":32}],"laserGates":[{"id":"g1","x1":1277,"y1":107,"x2":1277,"y2":387}]},"51":{"crystals":[],"switches":[],"laserGates":[]},"52":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":544,"y":660,"r":32}],"laserGates":[{"id":"g1","x1":1509,"y1":614,"x2":1509,"y2":894}]},"53":{"crystals":[],"switches":[],"laserGates":[]},"54":{"crystals":[{"id":"c1","x":834,"y":245,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":619,"y":326,"r":32}],"laserGates":[{"id":"g1","x1":1632,"y1":122,"x2":1632,"y2":402}]},"55":{"crystals":[{"id":"c1","x":840,"y":754,"r":32}],"switches":[],"laserGates":[]},"56":{"crystals":[],"switches":[],"laserGates":[]},"57":{"crystals":[],"switches":[],"laserGates":[]},"58":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":510,"y":749,"r":32}],"laserGates":[{"id":"g1","x1":1481,"y1":226,"x2":1481,"y2":506}]},"59":{"crystals":[{"id":"c1","x":809,"y":702,"r":32},{"id":"c2","x":1229,"y":767,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":656,"y":659,"r":32}],"laserGates":[{"id":"g1","x1":1395,"y1":627,"x2":1395,"y2":907}]},"60":{"crystals":[{"id":"c1","x":816,"y":215,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":652,"y":235,"r":32}],"laserGates":[{"id":"g1","x1":1387,"y1":114,"x2":1387,"y2":394}]},"61":{"crystals":[],"switches":[],"laserGates":[]},"62":{"crystals":[],"switches":[],"laserGates":[]},"63":{"crystals":[],"switches":[],"laserGates":[]},"64":{"crystals":[],"switches":[],"laserGates":[]},"65":{"crystals":[{"id":"c1","x":895,"y":448,"r":32},{"id":"c2","x":1376,"y":415,"r":32}],"switches":[],"laserGates":[]},"66":{"crystals":[],"switches":[],"laserGates":[]},"67":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":705,"y":922,"r":32}],"laserGates":[{"id":"g1","x1":1558,"y1":826,"x2":1558,"y2":1106}]},"68":{"crystals":[{"id":"c1","x":869,"y":536,"r":32}],"switches":[],"laserGates":[]},"69":{"crystals":[{"id":"c1","x":827,"y":665,"r":32}],"switches":[],"laserGates":[]},"70":{"crystals":[{"id":"c1","x":872,"y":819,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":696,"y":758,"r":32}],"laserGates":[{"id":"g1","x1":1550,"y1":776,"x2":1550,"y2":1056}]},"71":{"crystals":[],"switches":[],"laserGates":[]},"72":{"crystals":[],"switches":[],"laserGates":[]},"73":{"crystals":[],"switches":[],"laserGates":[]},"74":{"crystals":[],"switches":[],"laserGates":[]},"75":{"crystals":[{"id":"c1","x":937,"y":729,"r":32},{"id":"c2","x":1307,"y":875,"r":32},{"id":"c3","x":1692,"y":912,"r":32}],"switches":[],"laserGates":[]},"76":{"crystals":[],"switches":[],"laserGates":[]},"77":{"crystals":[],"switches":[],"laserGates":[]},"78":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":723,"y":783,"r":32}],"laserGates":[{"id":"g1","x1":1717,"y1":860,"x2":1717,"y2":1140}]},"79":{"crystals":[{"id":"c1","x":859,"y":492,"r":32},{"id":"c2","x":1642,"y":513,"r":32}],"switches":[],"laserGates":[]},"80":{"crystals":[{"id":"c1","x":794,"y":830,"r":32},{"id":"c2","x":1540,"y":857,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":605,"y":892,"r":32}],"laserGates":[{"id":"g1","x1":1808,"y1":934,"x2":1808,"y2":1214}]},"81":{"crystals":[],"switches":[],"laserGates":[]},"82":{"crystals":[],"switches":[],"laserGates":[]},"83":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":839,"y":1195,"r":32}],"laserGates":[{"id":"g1","x1":1940,"y1":1100,"x2":1940,"y2":1380}]},"84":{"crystals":[{"id":"c1","x":1017,"y":538,"r":32},{"id":"c2","x":1475,"y":725,"r":32},{"id":"c3","x":1981,"y":752,"r":32}],"switches":[],"laserGates":[]},"85":{"crystals":[],"switches":[],"laserGates":[]},"86":{"crystals":[],"switches":[],"laserGates":[]},"87":{"crystals":[],"switches":[{"id":"sw1","gateId":"g1","x":799,"y":568,"r":32}],"laserGates":[{"id":"g1","x1":1898,"y1":252,"x2":1898,"y2":532}]},"88":{"crystals":[{"id":"c1","x":1008,"y":689,"r":32},{"id":"c2","x":1914,"y":616,"r":32}],"switches":[],"laserGates":[]},"89":{"crystals":[],"switches":[],"laserGates":[]},"90":{"crystals":[{"id":"c1","x":1017,"y":774,"r":32},{"id":"c2","x":1752,"y":405,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":760,"y":860,"r":32}],"laserGates":[{"id":"g1","x1":2009,"y1":224,"x2":2009,"y2":504}]},"91":{"crystals":[{"id":"c1","x":1055,"y":754,"r":32},{"id":"c2","x":1849,"y":954,"r":32}],"switches":[],"laserGates":[]},"92":{"crystals":[{"id":"c1","x":736,"y":1008,"r":32},{"id":"c2","x":1463,"y":863,"r":32}],"switches":[],"laserGates":[]},"93":{"crystals":[{"id":"c1","x":984,"y":786,"r":32},{"id":"c2","x":1675,"y":880,"r":32}],"switches":[],"laserGates":[]},"94":{"crystals":[{"id":"c1","x":869,"y":604,"r":32},{"id":"c2","x":1628,"y":882,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":657,"y":541,"r":32}],"laserGates":[{"id":"g1","x1":2168,"y1":840,"x2":2168,"y2":1120}]},"95":{"crystals":[{"id":"c1","x":1055,"y":821,"r":32},{"id":"c2","x":1881,"y":828,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":803,"y":857,"r":32}],"laserGates":[{"id":"g1","x1":2137,"y1":600,"x2":2137,"y2":880}]},"96":{"crystals":[{"id":"c1","x":684,"y":990,"r":32},{"id":"c2","x":1321,"y":881,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":557,"y":1018,"r":32}],"laserGates":[{"id":"g1","x1":1718,"y1":800,"x2":1718,"y2":1080}]},"97":{"crystals":[{"id":"c1","x":1009,"y":652,"r":32},{"id":"c2","x":1797,"y":901,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":778,"y":597,"r":32}],"laserGates":[{"id":"g1","x1":2085,"y1":783,"x2":2085,"y2":1063}]},"98":{"crystals":[{"id":"c1","x":1043,"y":711,"r":32},{"id":"c2","x":1848,"y":853,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":798,"y":688,"r":32}],"laserGates":[{"id":"g1","x1":2126,"y1":635,"x2":2126,"y2":915}]},"99":{"crystals":[{"id":"c1","x":1113,"y":1358,"r":32},{"id":"c2","x":1768,"y":1368,"r":32}],"switches":[{"id":"sw1","gateId":"g1","x":862,"y":1313,"r":32}],"laserGates":[{"id":"g1","x1":2022,"y1":1191,"x2":2022,"y2":1471}]}};
+
+    function createProceduralLevel(id) {
       const sector = Math.min(10, Math.floor((id - 1) / 10) + 1);
       const sub = ((id - 1) % 10) + 1;
       const name = LEVEL_NAMES[id - 1] || `Màn ${id}`;
@@ -2801,7 +2808,7 @@ function createProceduralLevel(id) {
         const hazards = [
           ...lv.planets.map(p => ({ x: p.x, y: p.y, r: p.r || 50 })),
           ...lv.blackHoles.map(b => ({ x: b.x, y: b.y, r: b.r || 45 })),
-          ...lv.pulsars.map(pul => ({ x: pul.x, y: pul.y, r: pul.r || 30 })),
+          ...lv.pulsars.map(pul => ({ x: pul.x, y: pul.y, r: pul.range || 200 })),
           ...lv.asteroids.map(a => ({ x: a.x, y: a.y, r: a.r || 24 }))
         ];
         for (const h of hazards) {
@@ -3388,6 +3395,12 @@ function createProceduralLevel(id) {
         const p2 = { x: wh.x2, y: wh.y2 };
         ensureSafeClearance(p2, wh.r || 34);
         wh.x2 = p2.x; wh.y2 = p2.y;
+      }
+
+      if (PROC_PLACEMENTS[id]) {
+        if (PROC_PLACEMENTS[id].crystals) lv.crystals = PROC_PLACEMENTS[id].crystals;
+        if (PROC_PLACEMENTS[id].switches) lv.switches = PROC_PLACEMENTS[id].switches;
+        if (PROC_PLACEMENTS[id].laserGates) lv.laserGates = PROC_PLACEMENTS[id].laserGates;
       }
 
       return lv;
@@ -4076,7 +4089,7 @@ function createProceduralLevel(id) {
           for (const pul of level.pulsars) {
             const pDist = Math.hypot(sim.x - pul.x, sim.y - pul.y);
             if (pDist <= pul.r + state.ship.r) { hit = true; break; }
-            if (pDist <= (pul.range || 450)) {
+            if (pDist <= (pul.range || 200)) {
               const curAngle = (pul.beamAngle || 0) + (pul.rotSpeed || 1.0) * t;
               const shipAngle = Math.atan2(sim.y - pul.y, sim.x - pul.x);
               let d1 = Math.abs((shipAngle - curAngle) % (Math.PI * 2)); if (d1 > Math.PI) d1 = Math.PI * 2 - d1;
@@ -4504,7 +4517,7 @@ function createProceduralLevel(id) {
           triggerCrash("Tàu va chạm với lõi Sao Neutron Pulsar!", state.ship.x, state.ship.y, true);
           return;
         }
-        if (pDist <= (pul.range || 450)) {
+        if (pDist <= (pul.range || 200)) {
           const curAngle = (pul.beamAngle || 0) + (pul.rotSpeed || 1.0) * state.levelTime;
           const shipAngle = Math.atan2(state.ship.y - pul.y, state.ship.x - pul.x);
           let d1 = Math.abs((shipAngle - curAngle) % (Math.PI * 2)); if (d1 > Math.PI) d1 = Math.PI * 2 - d1;
@@ -4762,7 +4775,7 @@ function createProceduralLevel(id) {
     function drawPulsar(targetCtx, pul, now, levelTime) {
       targetCtx.save();
       const curAngle = (pul.beamAngle || 0) + (pul.rotSpeed || 1.0) * levelTime;
-      const beamLen = pul.range || 450;
+      const beamLen = pul.range || 200;
       const halfWidth = pul.beamWidth || 0.2;
 
       // Sweeping Twin Relativistic Beams
@@ -5082,7 +5095,7 @@ function createProceduralLevel(id) {
       // 3. Pulsars
       for (const pul of lv.pulsars) {
         const rings = 3;
-        const maxR = pul.range || 450;
+        const maxR = pul.range || 200;
         for (let i = 1; i <= rings; i++) {
           const frac = i / rings;
           const ringR = pul.r + frac * (maxR - pul.r);
@@ -5120,44 +5133,14 @@ function createProceduralLevel(id) {
     // FAST AIM SOLVER & NON-DESTRUCTIVE HINT VISUALIZER
     // ============================================================================
     function getOrComputeLevelAim(level) {
+      if (level.id === 100) return null;
+      if (VERIFIED_HINTS[level.id]) return VERIFIED_HINTS[level.id];
       if (level.defaultAim) return level.defaultAim;
-      if (!level._computedAim) {
-        // Quick deterministic search on coarse grid (16 angles x 5 powers)
-        let bestAim = null;
-        let minGoalDist = Infinity;
-        const dx = level.goal.x - level.start.x;
-        const dy = level.goal.y - level.start.y;
-        const baseAngle = Math.atan2(dy, dx);
-        const powers = [0.45, 0.65, 0.8, 0.95];
-
-        for (let pIdx = 0; pIdx < powers.length; pIdx++) {
-          const p = powers[pIdx] * MAX_PULL * LAUNCH_SPEED_SCALE;
-          for (let aOffset = -1.0; aOffset <= 1.0; aOffset += 0.16) {
-            const ang = baseAngle + aOffset;
-            const testVx = Math.cos(ang) * p;
-            const testVy = Math.sin(ang) * p;
-            const pts = computePrediction(testVx, testVy, 0, 160);
-            for (const pt of pts) {
-              const d = Math.hypot(pt.x - level.goal.x, pt.y - level.goal.y);
-              if (d < minGoalDist) {
-                minGoalDist = d;
-                bestAim = { vx: Math.round(testVx), vy: Math.round(testVy) };
-              }
-              if (d < level.goal.r + 20) break;
-            }
-            if (minGoalDist < level.goal.r + 20) break;
-          }
-          if (minGoalDist < level.goal.r + 20) break;
-        }
-        level._computedAim = bestAim || {
-          vx: Math.round(Math.cos(baseAngle) * 360),
-          vy: Math.round(Math.sin(baseAngle) * 360)
-        };
-      }
-      return level._computedAim;
+      return null;
     }
 
     function drawAimHint(targetCtx, lv, now) {
+      if (lv.id === 100) return;
       const aim = getOrComputeLevelAim(lv);
       if (!aim) return;
       const pts = computePrediction(aim.vx, aim.vy, state.levelTime, 280);
@@ -6681,6 +6664,18 @@ function createProceduralLevel(id) {
 
     function toggleHint() {
       sfx.playClick();
+      const lv = getCurrentLevel();
+      if (lv.id === 100) {
+        state.showHint = false;
+        const btn = document.getElementById('btn-hint');
+        const ddBtn = document.getElementById('dd-btn-hint');
+        if (btn) btn.classList.remove('active-toggle');
+        if (ddBtn) ddBtn.classList.remove('active-toggle');
+        setBanner(currentLang === 'vi'
+          ? "⚠️ MÀN 100: Thử thách tối thượng không có gợi ý! Hãy tự mình chinh phục Cực Hạn Vô Cực!"
+          : "⚠️ LEVEL 100: Ultimate challenge has no hints! Conquer the Omniverse on your own!", true);
+        return;
+      }
       state.showHint = !state.showHint;
       const btn = document.getElementById('btn-hint');
       const ddBtn = document.getElementById('dd-btn-hint');
